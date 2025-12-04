@@ -1,11 +1,1287 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Seismo-Wake</title>
+  <meta charset="UTF-8" />
+  <title>Seismo-Wake — мониторинг землетрясений</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-elevated: #111319;
+      --bg-soft: #181b23;
+      --accent: #ffd447;
+      --accent-soft: rgba(255, 212, 71, 0.1);
+      --text: #f7f7f7;
+      --text-muted: #a5a9b8;
+      --danger-high: #ff4b4b;
+      --danger-med: #ffb347;
+      --danger-low: #36d399;
+      --border-soft: #262938;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 14px 35px rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #151827 0, #050608 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 960px;
+      padding: 14px 12px 24px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .app-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .app-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(3, 8, 23, 0.9);
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .updated-time {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .status-card {
+      background: linear-gradient(135deg, rgba(15,18,28,0.96), rgba(7,9,16,0.98));
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-main-text {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--danger-low);
+    }
+
+    .status-pill.low {
+      background: rgba(54, 211, 153, 0.14);
+      color: var(--danger-low);
+    }
+    .status-pill.medium {
+      background: rgba(255, 179, 71, 0.14);
+      color: var(--danger-med);
+    }
+    .status-pill.high {
+      background: rgba(255, 75, 75, 0.16);
+      color: var(--danger-high);
+    }
+    .status-pill.medium .status-dot {
+      background: var(--danger-med);
+    }
+    .status-pill.high .status-dot {
+      background: var(--danger-high);
+    }
+
+    .status-subtext {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .location-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+
+    .location-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .chip-btn {
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(12,16,26,0.95);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .donate-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.07);
+      padding-top: 8px;
+    }
+
+    .donate-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .donate-btn {
+      flex: 1 1 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 13px;
+      padding: 7px 10px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .donate-btn span.emoji {
+      font-size: 15px;
+    }
+
+    .donate-btn.boosty {
+      border-color: rgba(255, 212, 71, 0.7);
+    }
+
+    .donate-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .donate-hint strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .donate-caption {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    main {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .tools-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-soft);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .event-card {
+      position: relative;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      padding: 9px 10px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .event-danger-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: var(--radius-md) 0 0 var(--radius-md);
+      background: var(--danger-low);
+    }
+
+    .event-card.medium .event-danger-bar {
+      background: var(--danger-med);
+    }
+
+    .event-card.high .event-danger-bar {
+      background: var(--danger-high);
+    }
+
+    .event-main-line {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .event-mag {
+      font-weight: 700;
+    }
+
+    .event-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .event-second-line,
+    .event-third-line {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .event-links {
+      margin-top: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .event-source {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .event-link {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .event-link:hover {
+      text-decoration: underline;
+    }
+
+    .empty-state,
+    .error-state {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 10px;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-soft);
+      background: rgba(9, 12, 21, 0.9);
+    }
+
+    footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Modal */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
+    }
+
+    @media (min-width: 640px) {
+      .modal-backdrop {
+        align-items: center;
+      }
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      background: #0b0d15;
+      border-radius: 18px 18px 0 0;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.75);
+      padding: 12px 14px 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(8px);
+    }
+
+    @media (min-width: 640px) {
+      .modal {
+        border-radius: 18px;
+        padding: 16px 18px 18px;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 3px 4px;
+    }
+
+    .modal-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .modal-body p {
+      margin: 4px 0 6px;
+    }
+
+    .modal-body h4 {
+      margin: 10px 0 4px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .modal-body ul {
+      padding-left: 18px;
+      margin: 4px 0 8px;
+    }
+
+    .modal-body li {
+      margin-bottom: 4px;
+    }
+
+    .modal-body small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .modal-body a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .modal-body a:hover {
+      text-decoration: underline;
+    }
+
+    /* Location modal */
+
+    .location-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .location-form-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .field input {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #050710;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .quick-cities {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .quick-city-btn {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #060814;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .quick-city-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .location-actions {
+      margin-top: 6px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--accent);
+      color: #131313;
+    }
+
+    .btn-secondary {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #050710;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    @media (max-width: 520px) {
+      .app-title {
+        font-size: 20px;
+      }
+      .status-main-text {
+        font-size: 15px;
+      }
+      .status-subtext {
+        font-size: 12px;
+      }
+      .location-info {
+        font-size: 12px;
+      }
+      .event-main-line {
+        font-size: 13px;
+      }
+      .event-second-line,
+      .event-third-line {
+        font-size: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Seismo-Wake</h1>
-  <p>App is loading...</p>
+<div class="app-shell">
+  <header>
+    <div class="app-title-row">
+      <div class="app-title">
+        Seismo-Wake
+        <span class="badge">beta</span>
+      </div>
+      <div class="updated-time" id="updatedTime">Обновление…</div>
+    </div>
+
+    <div class="status-card" id="statusCard">
+      <div class="status-row">
+        <div class="status-main-text" id="statusMain">Анализ ближайших землетрясений…</div>
+        <div class="status-pill low" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusPillText">Спокойно</span>
+        </div>
+      </div>
+      <div class="status-subtext" id="statusSub">
+        Приложение оценивает данные с международных сейсмических серверов и показывает уровень потенциальной опасности относительно вашего местоположения.
+      </div>
+      <div class="location-row">
+        <div class="location-info" id="locationInfo">
+          Местоположение: определяется…
+        </div>
+        <button class="chip-btn" data-open-modal="locationModal">Изменить локацию</button>
+      </div>
+      <div class="donate-row">
+        <div class="donate-buttons">
+          <a class="donate-btn boosty" href="https://boosty.to/zhanat-arch" target="_blank" rel="noopener noreferrer">
+            <span class="emoji">💳</span>
+            <span>Boosty — безопасно, любая карта</span>
+          </a>
+          <a class="donate-btn" href="https://ko-fi.com/zhanat_arch" target="_blank" rel="noopener noreferrer">
+            <span class="emoji">☕</span>
+            <span>Ko-fi — PayPal / международно</span>
+          </a>
+        </div>
+        <div class="donate-hint">
+          <strong>Ваш донат может однажды спасти жизнь.</strong><br>
+          Вы поддерживаете развитие сервиса ранних уведомлений о землетрясениях и помогаете сделать его доступным для всех.
+        </div>
+        <div class="donate-caption">
+          Поделитесь этой страницей и GitHub-профилем разработчика, если вам важна безопасность.
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-header">
+      <div class="section-title">Недавние землетрясения поблизости</div>
+      <div class="tools-row">
+        <button class="tool-btn" data-open-modal="howModal">Как это работает</button>
+        <button class="tool-btn" data-open-modal="safetyModal">Что делать при землетрясении</button>
+      </div>
+    </div>
+
+    <div id="eventsContainer">
+      <div class="empty-state">
+        Подбираем последние события… Если рядом были ощутимые толчки за последний час, они появятся здесь.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>Источник данных: USGS (основной) → EMSC (резерв) → последняя сохранённая выборка.</div>
+    <div>Страница разработчика: <a href="https://github.com/zhanat-arch" target="_blank" rel="noopener noreferrer">github.com/zhanat-arch</a></div>
+    <div>⚠️ Фоновые уведомления без открытой вкладки пока недоступны. Проект в активной доработке.</div>
+  </footer>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop" id="modalBackdrop" data-active-modal="">
+  <!-- How it works -->
+  <div class="modal" id="howModal">
+    <div class="modal-header">
+      <div class="modal-title">Как это работает</div>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Seismo-Wake — это лёгкое веб-приложение для мониторинга землетрясений в реальном времени.</strong> Оно получает данные с международных сейсмических серверов, рассчитывает расстояние до событий и показывает уровень потенциальной опасности относительно вашего местоположения.</p>
+
+      <h4>Источники данных</h4>
+      <ul>
+        <li>Основной источник — USGS (США, мировой охват).</li>
+        <li>Резервный источник — EMSC (Европа и мир).</li>
+        <li>Если оба источника временно недоступны, показывается последняя сохранённая выборка.</li>
+      </ul>
+
+      <h4>Ограничения текущей версии</h4>
+      <p>
+        Приложение <strong>не может отправлять фоновые уведомления</strong>, если вкладка закрыта, свёрнута или выгружена системой.
+        Seismo-Wake работает как обычная веб-страница без отдельного сервера, поэтому не «будит» телефон при новых событиях.
+      </p>
+      <p>
+        <strong>Поддержка фоновых уведомлений, Web Push и автоматических тревог находится в разработке.</strong>
+      </p>
+
+      <h4>Как использовать сейчас</h4>
+      <ul>
+        <li>Открывайте Seismo-Wake при подозрительных толчках или в период афтершоков.</li>
+        <li>Держите вкладку открытой, чтобы получать автоматические обновления.</li>
+        <li>Ориентируйтесь на цветовые индикаторы:
+          <br>зелёный — спокойно, жёлтый — есть ощутимые события в регионе, красный — есть потенциально опасные события близко.
+        </li>
+        <li>Обновления выполняются автоматически:
+          <br><strong>каждые 10 секунд</strong> при активной вкладке,
+          <br><strong>каждые 60 секунд</strong> — в фоновом режиме (пока вкладка не выгружена системой).</li>
+      </ul>
+
+      <h4>Страница разработчика</h4>
+      <p>
+        Новости, обновления, исправления и планы развития публикуются здесь:
+        <br>
+        👉 <a href="https://github.com/zhanat-arch" target="_blank" rel="noopener noreferrer">https://github.com/zhanat-arch</a>
+      </p>
+
+      <h4>Поддержка разработки</h4>
+      <p>
+        Если вы хотите ускорить появление фоновых уведомлений и новых функций, поддержите проект донатом — любой вклад действительно помогает.
+      </p>
+    </div>
+  </div>
+
+  <!-- Safety instructions -->
+  <div class="modal" id="safetyModal">
+    <div class="modal-header">
+      <div class="modal-title">Что делать при землетрясении</div>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Инструкция носит общий характер и не заменяет официальные рекомендации МЧС вашего региона.</strong></p>
+
+      <h4>1. До землетрясения</h4>
+      <ul>
+        <li>Продумайте заранее, где в помещении находятся <strong>безопасные места</strong>: у внутренних стен, под прочным столом, вдали от окон.</li>
+        <li>Не заставляйте проходы тяжёлыми предметами — пути выхода должны быть свободны.</li>
+        <li>Закрепите высокую мебель, зеркала и полки, чтобы они не упали при толчках.</li>
+        <li>Держите под рукой фонарик, воду, минимальную аптечку, документы и зарядку к телефону.</li>
+      </ul>
+
+      <h4>2. Во время землетрясения — внутри здания</h4>
+      <ul>
+        <li><strong>Не бегите к выходу и не пользуйтесь лифтом.</strong> Лестницы, лифтовые шахты и выходы могут быть опасны из-за обрушений и паники.</li>
+        <li>Быстро присядьте или лягте на пол, <strong>прикройте голову и шею</strong> руками, подушкой или свернутой одеждой.</li>
+        <li>Если рядом есть прочный стол — <strong>укройтесь под ним</strong> и держитесь за ножку.</li>
+        <li><strong>Если вы знаете, где находятся ригели или несущие балки — встаньте под ними.</strong> Они выдерживают нагрузку лучше и могут частично защитить от падающих предметов.</li>
+        <li>Держитесь подальше от стекол, зеркал, шкафов, телевизоров и всего, что может упасть.</li>
+      </ul>
+
+      <h4>3. Во время землетрясения — на улице</h4>
+      <ul>
+        <li>Отойдите от зданий, балконов, витрин, окон, столбов, деревьев и проводов.</li>
+        <li>Найдите открытое пространство, присядьте и прикройте голову.</li>
+        <li>Не стойте под мостами, арками, рядом с фасадами и навесами.</li>
+      </ul>
+
+      <h4>4. Во время землетрясения — в машине</h4>
+      <ul>
+        <li>Аккуратно остановитесь подальше от мостов, эстакад, зданий и линий электропередач.</li>
+        <li>Останьтесь пристёгнутыми в машине до окончания толчков.</li>
+        <li>Включите аварийную сигнализацию, при необходимости слушайте радио или официальные оповещения.</li>
+      </ul>
+
+      <h4>5. После землетрясения</h4>
+      <ul>
+        <li>Будьте готовы к <strong>повторным толчкам (афтершокам)</strong> и при необходимости снова укройтесь.</li>
+        <li>Осторожно выходите наружу, следите за стеклом, обломками и оголёнными проводами.</li>
+        <li><strong>Не пользуйтесь лифтом.</strong></li>
+        <li>Если чувствуете запах газа — не включайте свет и не пользуйтесь открытым огнём, покиньте помещение и сообщите в экстренные службы.</li>
+        <li>Помогите детям, пожилым и тем, кто растерялся или в панике.</li>
+        <li>Следите за официальными уведомлениями и указаниями властей по возвращению в здания.</li>
+      </ul>
+
+      <p><small>Эти рекомендации даны для общей ориентации. Всегда следуйте указаниям местных служб и официальных источников информации.</small></p>
+    </div>
+  </div>
+
+  <!-- Location modal -->
+  <div class="modal" id="locationModal">
+    <div class="modal-header">
+      <div class="modal-title">Местоположение</div>
+      <button class="modal-close" data-close-modal>&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>
+        Приложение использует примерное местоположение, чтобы оценить расстояние до ближайших землетрясений.
+        По умолчанию используется Алматы. Вы можете указать свои координаты или быстро выбрать один из городов.
+      </p>
+
+      <div class="location-form">
+        <div class="location-form-row">
+          <div class="field">
+            <label for="latInput">Широта (например, 43.2389)</label>
+            <input id="latInput" type="number" step="0.0001" placeholder="Широта">
+          </div>
+          <div class="field">
+            <label for="lonInput">Долгота (например, 76.8897)</label>
+            <input id="lonInput" type="number" step="0.0001" placeholder="Долгота">
+          </div>
+        </div>
+        <div class="quick-cities">
+          <button class="quick-city-btn" data-city="almaty">Алматы</button>
+          <button class="quick-city-btn" data-city="astana">Астана</button>
+          <button class="quick-city-btn" data-city="tokyo">Токио</button>
+          <button class="quick-city-btn" data-city="istanbul">Стамбул</button>
+          <button class="quick-city-btn" data-city="la">Лос-Анджелес</button>
+        </div>
+        <div class="location-actions">
+          <button class="btn-secondary" id="detectIpBtn">Определить по IP</button>
+          <button class="btn-primary" id="saveLocationBtn">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson";
+  // Пример резервного источника (EMSC / SeismicPortal). В реальности может потребовать донастройки.
+  const EMSC_URL = "https://www.seismicportal.eu/fdsnws/event/1/query?limit=50&format=json";
+
+  const DEFAULT_LOCATION = {
+    lat: 43.2389,
+    lon: 76.8897,
+    label: "Алматы (по умолчанию)"
+  };
+
+  let userLocation = { ...DEFAULT_LOCATION };
+  let lastData = null;
+  let refreshTimer = null;
+  let refreshIntervalActive = 10000; // 10s
+  let refreshIntervalInactive = 60000; // 60s
+  let lastFetchError = null;
+
+  const updatedTimeEl = document.getElementById("updatedTime");
+  const eventsContainer = document.getElementById("eventsContainer");
+  const statusMainEl = document.getElementById("statusMain");
+  const statusPillEl = document.getElementById("statusPill");
+  const statusPillTextEl = document.getElementById("statusPillText");
+  const statusSubEl = document.getElementById("statusSub");
+  const locationInfoEl = document.getElementById("locationInfo");
+
+  const latInput = document.getElementById("latInput");
+  const lonInput = document.getElementById("lonInput");
+  const detectIpBtn = document.getElementById("detectIpBtn");
+  const saveLocationBtn = document.getElementById("saveLocationBtn");
+
+  // --------- Utils --------- //
+
+  function formatTimeAgo(timestampMs) {
+    const now = Date.now();
+    const diffMs = now - timestampMs;
+    if (diffMs < 0) return "только что";
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 30) return "только что";
+    if (diffSec < 90) return "1 мин назад";
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return diffMin + " мин назад";
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return diffH + " ч назад";
+    const diffD = Math.floor(diffH / 24);
+    return diffD + " дн назад";
+  }
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function classifyDanger(mag, distanceKm) {
+    if (mag == null || isNaN(mag) || isNaN(distanceKm)) {
+      return { level: "low", label: "Нет данных", desc: "Недостаточно данных для оценки." };
+    }
+
+    // Простая эвристика
+    if ((mag >= 5 && distanceKm <= 300) || (mag >= 4 && distanceKm <= 150)) {
+      return {
+        level: "high",
+        label: "Потенциально опасно",
+        desc: "Есть землетрясения поблизости, которые могут быть ощутимыми. Будьте внимательны и при необходимости выходите на открытое место."
+      };
+    }
+
+    if ((mag >= 4 && distanceKm <= 500) || (mag >= 3.5 && distanceKm <= 300)) {
+      return {
+        level: "medium",
+        label: "Есть ощутимые события",
+        desc: "В вашем регионе фиксируются ощутимые землетрясения. Следите за ситуацией и официальными оповещениями."
+      };
+    }
+
+    return {
+      level: "low",
+      label: "Спокойно",
+      desc: "Опасных землетрясений поблизости не зафиксировано по текущим данным."
+    };
+  }
+
+  function formatDistance(distanceKm) {
+    if (!isFinite(distanceKm)) return "Расстояние неизвестно";
+    if (distanceKm < 1) return "Менее 1 км";
+    if (distanceKm < 100) return distanceKm.toFixed(1) + " км";
+    return Math.round(distanceKm / 10) * 10 + " км";
+  }
+
+  function setStatusFromEvents(events) {
+    if (!events || !events.length) {
+      statusMainEl.textContent = "Опасных событий поблизости не зафиксировано";
+      statusPillEl.classList.remove("medium", "high");
+      statusPillEl.classList.add("low");
+      statusPillTextEl.textContent = "Спокойно";
+      statusSubEl.textContent = "По последним данным рядом с вашим местоположением нет землетрясений, которые могут представлять опасность.";
+      return;
+    }
+    // берём самое "опасное" событие
+    let best = null;
+    const weights = { high: 3, medium: 2, low: 1 };
+    for (const ev of events) {
+      const d = classifyDanger(ev.mag, ev.distanceKm);
+      const w = weights[d.level] || 0;
+      if (!best || w > best.w) best = { ...d, w, ev };
+    }
+    if (!best) return;
+
+    statusPillEl.classList.remove("low", "medium", "high");
+    statusPillEl.classList.add(best.level);
+    statusPillTextEl.textContent = best.label;
+
+    if (best.level === "high") {
+      statusMainEl.textContent = "Есть потенциально опасные события в вашем регионе";
+    } else if (best.level === "medium") {
+      statusMainEl.textContent = "В ближайшем регионе есть ощутимые землетрясения";
+    } else {
+      statusMainEl.textContent = "Серьёзных угроз поблизости не обнаружено";
+    }
+
+    statusSubEl.textContent = best.desc;
+  }
+
+  function renderEvents(events) {
+    if (!events || !events.length) {
+      eventsContainer.innerHTML = '<div class="empty-state">По текущим данным поблизости нет землетрясений, которые могли бы представлять опасность. Если вы ощущаете толчки — следуйте инструкции безопасности и официальным рекомендациям.</div>';
+      setStatusFromEvents([]);
+      return;
+    }
+
+    const items = events.slice(0, 20);
+    const fragments = items.map(ev => {
+      const danger = classifyDanger(ev.mag, ev.distanceKm);
+      const levelClass = danger.level;
+      const colorLabel = danger.level === "high" ? "Высокий уровень" :
+                         danger.level === "medium" ? "Средний уровень" :
+                         "Низкий уровень";
+
+      const timeAgo = formatTimeAgo(ev.time);
+      const magText = ev.mag != null ? "M " + ev.mag.toFixed(1) : "M —";
+      const distText = isFinite(ev.distanceKm)
+        ? "Расстояние до эпицентра ~ " + formatDistance(ev.distanceKm)
+        : "Расстояние до эпицентра неизвестно";
+
+      const regionText = ev.place || "Регион не указан";
+      const srcText = ev.source || "Источник не указан";
+
+      const detailLink = ev.detailUrl
+        ? `<a class="event-link" href="${ev.detailUrl}" target="_blank" rel="noopener noreferrer">Посмотреть на сайте</a>`
+        : "";
+
+      return `
+        <div class="event-card ${levelClass}">
+          <div class="event-danger-bar"></div>
+          <div class="event-main-line">
+            <span><span class="event-mag">${magText}</span> · ${timeAgo}</span>
+            <span class="event-time">${colorLabel}</span>
+          </div>
+          <div class="event-second-line">${distText}</div>
+          <div class="event-third-line">${regionText}</div>
+          <div class="event-links">
+            <span class="event-source">${srcText}</span>
+            ${detailLink}
+          </div>
+        </div>
+      `;
+    });
+
+    eventsContainer.innerHTML = '<div class="events-list">' + fragments.join("") + '</div>';
+    setStatusFromEvents(events);
+  }
+
+  function setUpdatedTime(date) {
+    if (!date) {
+      updatedTimeEl.textContent = "Обновление…";
+      return;
+    }
+    const d = new Date(date);
+    const hh = d.getHours().toString().padStart(2, "0");
+    const mm = d.getMinutes().toString().padStart(2, "0");
+    const ss = d.getSeconds().toString().padStart(2, "0");
+    updatedTimeEl.textContent = "Обновлено в " + hh + ":" + mm + ":" + ss;
+  }
+
+  function setLocationInfo() {
+    locationInfoEl.textContent = "Местоположение: " + (userLocation.label || "координаты " + userLocation.lat.toFixed(3) + ", " + userLocation.lon.toFixed(3));
+    latInput.value = userLocation.lat.toFixed(4);
+    lonInput.value = userLocation.lon.toFixed(4);
+  }
+
+  // -------- Fetchers -------- //
+
+  async function fetchUSGS() {
+    const res = await fetch(USGS_URL);
+    if (!res.ok) throw new Error("USGS error: " + res.status);
+    const data = await res.json();
+    if (!data.features) return [];
+    return data.features.map(f => {
+      const props = f.properties || {};
+      const coords = (f.geometry && f.geometry.coordinates) || [];
+      const lon = coords[0];
+      const lat = coords[1];
+      const mag = props.mag;
+      const time = props.time;
+      const place = props.place;
+      const url = props.url;
+      const distanceKm = (lat != null && lon != null)
+        ? haversineKm(userLocation.lat, userLocation.lon, lat, lon)
+        : NaN;
+      return {
+        source: "USGS",
+        mag,
+        time,
+        place,
+        lat,
+        lon,
+        distanceKm,
+        detailUrl: url || null
+      };
+    });
+  }
+
+  async function fetchEMSC() {
+    const res = await fetch(EMSC_URL);
+    if (!res.ok) throw new Error("EMSC error: " + res.status);
+    const data = await res.json();
+    const features = data.features || data.events || [];
+    return features.map(f => {
+      const props = f.properties || f;
+      const coords = (f.geometry && f.geometry.coordinates) || [props.lon, props.lat];
+      const lon = coords[0];
+      const lat = coords[1];
+      const mag = props.mag || props.magnitude;
+      const time = props.time || (props.time_ms || Date.now());
+      const place = props.flynn_region || props.region || "Регион EMSC";
+      const url = props.url || props.web || null;
+      const distanceKm = (lat != null && lon != null)
+        ? haversineKm(userLocation.lat, userLocation.lon, lat, lon)
+        : NaN;
+      return {
+        source: "EMSC",
+        mag: typeof mag === "number" ? mag : parseFloat(mag),
+        time,
+        place,
+        lat,
+        lon,
+        distanceKm,
+        detailUrl: url
+      };
+    });
+  }
+
+  async function fetchAll() {
+    lastFetchError = null;
+    try {
+      let events = await fetchUSGS();
+      if ((!events || !events.length) && navigator.onLine) {
+        // нет данных — пробуем резерв
+        events = await fetchEMSC();
+      }
+      // фильтруем очень старые, если вдруг попали
+      const now = Date.now();
+      events = (events || []).filter(ev => now - ev.time <= 1000 * 60 * 60 * 3); // 3 часа
+      // сортируем по времени (сначала самые новые)
+      events.sort((a, b) => b.time - a.time);
+      lastData = {
+        updatedAt: now,
+        events
+      };
+      renderEvents(events);
+      setUpdatedTime(now);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      lastFetchError = err;
+      setUpdatedTime(Date.now());
+      if (lastData && lastData.events && lastData.events.length) {
+        // показываем кэш и предупреждение
+        renderEvents(lastData.events);
+        const warning = document.createElement("div");
+        warning.className = "error-state";
+        warning.textContent = "Не удалось получить новые данные. Показана последняя сохранённая выборка. Проверьте подключение к интернету или попробуйте обновить страницу позже.";
+        eventsContainer.prepend(warning);
+      } else {
+        eventsContainer.innerHTML = '<div class="error-state">Не удалось получить данные о землетрясениях. Проверьте подключение к интернету или попробуйте снова позже.</div>';
+        setStatusFromEvents([]);
+      }
+    }
+  }
+
+  function setupRefreshLoop() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    const interval = document.visibilityState === "visible" ? refreshIntervalActive : refreshIntervalInactive;
+    refreshTimer = setInterval(fetchAll, interval);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    setupRefreshLoop();
+  });
+
+  // -------- Location via IP -------- //
+
+  async function detectLocationFromIP() {
+    try {
+      // Простейший IP-геолокатор. Может не работать из file:// или быть заблокирован.
+      const res = await fetch("https://ipapi.co/json/");
+      if (!res.ok) throw new Error("ipapi error " + res.status);
+      const data = await res.json();
+      if (data && typeof data.latitude === "number" && typeof data.longitude === "number") {
+        userLocation.lat = data.latitude;
+        userLocation.lon = data.longitude;
+        const city = data.city || "";
+        const country = data.country_name || "";
+        userLocation.label = city || country
+          ? (city ? city : "") + (city && country ? ", " : "") + (country ? country : "")
+          : "определено по IP";
+        setLocationInfo();
+        // пересчитываем расстояния и перерисовываем, если есть данные
+        if (lastData && lastData.events) {
+          lastData.events.forEach(ev => {
+            if (ev.lat != null && ev.lon != null) {
+              ev.distanceKm = haversineKm(userLocation.lat, userLocation.lon, ev.lat, ev.lon);
+            }
+          });
+          renderEvents(lastData.events);
+        }
+        return true;
+      }
+      throw new Error("no coords from IP");
+    } catch (err) {
+      console.warn("IP location failed:", err);
+      alert("Не удалось определить местоположение по IP. Вы можете указать координаты вручную или использовать Алматы по умолчанию.");
+      return false;
+    }
+  }
+
+  // -------- Modal logic -------- //
+
+  const backdrop = document.getElementById("modalBackdrop");
+  const modals = {
+    howModal: document.getElementById("howModal"),
+    safetyModal: document.getElementById("safetyModal"),
+    locationModal: document.getElementById("locationModal")
+  };
+
+  function openModal(id) {
+    if (!modals[id]) return;
+    backdrop.dataset.activeModal = id;
+    backdrop.classList.add("visible");
+    Object.entries(modals).forEach(([key, el]) => {
+      el.style.display = key === id ? "flex" : "none";
+    });
+  }
+
+  function closeModal() {
+    backdrop.classList.remove("visible");
+    backdrop.dataset.activeModal = "";
+  }
+
+  document.addEventListener("click", (e) => {
+    const openId = e.target.getAttribute("data-open-modal");
+    if (openId) {
+      openModal(openId);
+      return;
+    }
+    if (e.target.hasAttribute("data-close-modal")) {
+      closeModal();
+      return;
+    }
+    if (e.target === backdrop) {
+      closeModal();
+    }
+  });
+
+  // -------- Location modal actions -------- //
+
+  document.querySelectorAll(".quick-city-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const city = btn.dataset.city;
+      let coords = null;
+      switch (city) {
+        case "almaty":
+          coords = { lat: 43.2389, lon: 76.8897, label: "Алматы" }; break;
+        case "astana":
+          coords = { lat: 51.1605, lon: 71.4704, label: "Астана" }; break;
+        case "tokyo":
+          coords = { lat: 35.6895, lon: 139.6917, label: "Токио" }; break;
+        case "istanbul":
+          coords = { lat: 41.0082, lon: 28.9784, label: "Стамбул" }; break;
+        case "la":
+          coords = { lat: 34.0522, lon: -118.2437, label: "Лос-Анджелес" }; break;
+      }
+      if (coords) {
+        latInput.value = coords.lat.toFixed(4);
+        lonInput.value = coords.lon.toFixed(4);
+      }
+    });
+  });
+
+  detectIpBtn.addEventListener("click", async () => {
+    await detectLocationFromIP();
+  });
+
+  saveLocationBtn.addEventListener("click", () => {
+    const latVal = parseFloat(latInput.value);
+    const lonVal = parseFloat(lonInput.value);
+    if (!isFinite(latVal) || !isFinite(lonVal)) {
+      alert("Пожалуйста, введите корректные значения широты и долготы.");
+      return;
+    }
+    userLocation.lat = latVal;
+    userLocation.lon = lonVal;
+    userLocation.label = "координаты " + latVal.toFixed(3) + ", " + lonVal.toFixed(3);
+    setLocationInfo();
+    // пересчёт расстояний
+    if (lastData && lastData.events) {
+      lastData.events.forEach(ev => {
+        if (ev.lat != null && ev.lon != null) {
+          ev.distanceKm = haversineKm(userLocation.lat, userLocation.lon, ev.lat, ev.lon);
+        }
+      });
+      renderEvents(lastData.events);
+    }
+    closeModal();
+  });
+
+  // -------- Init -------- //
+
+  function initLocation() {
+    // можно попытаться взять из localStorage в будущем,
+    // пока используем только дефолт Алматы и ручное изменение.
+    userLocation = { ...DEFAULT_LOCATION };
+    setLocationInfo();
+  }
+
+  async function init() {
+    initLocation();
+    setUpdatedTime(null);
+    await fetchAll();
+    setupRefreshLoop();
+  }
+
+  init();
+})();
+</script>
 </body>
 </html>
