@@ -3,23 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <title>Seismo-Wake</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#111827" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="description" content="Seismo-Wake — простое и понятное приложение для быстрой оценки землетрясений рядом с вами: где, как далеко и насколько сильно тряхнуло." />
+
   <style>
     :root {
-      --bg: #020617;
-      --bg-elevated: #0f172a;
-      --bg-soft: #020617;
-      --accent: #22c55e;
-      --accent-soft: #16a34a33;
-      --danger: #ef4444;
-      --danger-soft: #ef444433;
-      --warn: #f97316;
-      --warn-soft: #f9731633;
-      --text: #e5e7eb;
+      --bg: #0f172a;
+      --bg-card: #0b1220;
+      --bg-elevated: #020617;
+      --border-soft: #1e293b;
+      --accent: #3b82f6;
+      --accent-soft: #1d4ed8;
+      --accent-soft-bg: #0b1120;
+      --text-main: #e5e7eb;
       --text-soft: #9ca3af;
-      --border-soft: #1f2937;
-      --card-radius: 18px;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --safe: #22c55e;
+      --card-radius: 14px;
+      --shadow-soft: 0 12px 30px rgba(15,23,42,0.6);
     }
 
     * {
@@ -28,1384 +31,1734 @@
 
     body {
       margin: 0;
-      padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
-      color: var(--text);
+      background: radial-gradient(circle at top, #1e293b 0, #020617 50%, #000 100%);
+      color: var(--text-main);
     }
 
-    .app-shell {
+    .app {
       max-width: 960px;
       margin: 0 auto;
-      padding: 16px 12px 32px;
+      padding: 16px 12px 40px;
+    }
+
+    @media (min-width: 768px) {
+      .app {
+        padding: 24px 16px 48px;
+      }
     }
 
     header {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
-    .logo-circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, #22c55e, #0f172a);
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 18px;
-      color: #ecfdf5;
-      box-shadow: 0 0 24px #22c55e55;
-      flex-shrink: 0;
+      gap: 8px;
     }
 
-    .app-title-block h1 {
-      font-size: 22px;
-      margin: 0;
+    .app-title span.logo-dot {
+      display: inline-flex;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #f97316 0, #dc2626 40%, #7f1d1d 100%);
+      box-shadow: 0 0 24px rgba(248,113,113,0.8);
     }
 
-    .app-title-block p {
-      margin: 2px 0 0;
+    .tagline {
       font-size: 13px;
       color: var(--text-soft);
+      max-width: 640px;
     }
 
-    .lang-switch {
+    .lang-switcher {
       display: flex;
-      gap: 6px;
-      margin: 10px 0 14px;
-      flex-wrap: wrap;
+      gap: 4px;
     }
 
     .lang-btn {
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
+      border: 1px solid transparent;
+      background: transparent;
       color: var(--text-soft);
       font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
       cursor: pointer;
+      transition: 0.15s ease;
     }
 
     .lang-btn.active {
-      border-color: var(--accent);
-      background: #022c22;
-      color: #bbf7d0;
+      background: rgba(59,130,246,0.16);
+      border-color: rgba(59,130,246,0.9);
+      color: #e5f0ff;
+      font-weight: 600;
     }
 
-    h2.section-title {
-      font-size: 17px;
-      margin: 8px 0 6px;
+    .lang-btn:hover {
+      border-color: rgba(148,163,184,0.5);
     }
 
-    .subtitle {
-      font-size: 13px;
-      color: var(--text-soft);
-      margin-bottom: 12px;
-    }
-
-    .top-row {
+    .top-buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .updated-label {
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      margin: 4px 0 12px;
     }
 
     .btn {
       border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
-      color: var(--text);
-      padding: 8px 12px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: radial-gradient(circle at 0 0, rgba(59,130,246,0.15), rgba(15,23,42,0.95));
+      padding: 7px 12px;
       font-size: 13px;
-      cursor: pointer;
+      color: var(--text-main);
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.5);
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease;
       white-space: nowrap;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #22c55e, #15803d);
-      border-color: #22c55e;
-      color: #052e16;
-      font-weight: 600;
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
     }
 
-    .btn-ghost {
-      background: transparent;
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15,23,42,0.6);
+      border-color: rgba(248,250,252,0.18);
     }
 
-    .region-label {
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 14px rgba(15,23,42,0.7);
+    }
+
+    .btn-icon {
       font-size: 14px;
-      margin: 6px 0 12px;
     }
 
-    .region-label span {
-      color: #a5f3fc;
-    }
-
-    .live-row-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-top: 10px;
-      margin-bottom: 6px;
-    }
-
-    .location-row {
+    .update-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
       align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-soft);
       margin-bottom: 10px;
     }
 
-    .location-input-wrapper {
-      flex: 1 1 200px;
-      min-width: 0;
-    }
-
-    #location-input {
-      width: 100%;
-      padding: 8px 10px;
+    .spinner {
+      width: 16px;
+      height: 16px;
       border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
-      color: var(--text);
-      font-size: 14px;
+      border: 2px solid rgba(148,163,184,0.3);
+      border-top-color: #e5e7eb;
+      animation: spin 1s linear infinite;
+      display: none;
     }
 
-    #location-input::placeholder {
-      color: #6b7280;
+    .spinner.visible {
+      display: inline-block;
     }
 
-    .small-note {
-      font-size: 12px;
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .source-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-left: auto;
+      opacity: 0.8;
+    }
+
+    .region-card {
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(148,163,184,0.4);
+      padding: 12px 12px 10px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 12px;
+    }
+
+    .region-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .region-label {
+      font-size: 13px;
       color: var(--text-soft);
     }
 
-    .small-link-btn {
-      font-size: 12px;
-      padding: 6px 10px;
+    .region-current {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .region-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .region-input-row input {
+      flex: 1;
       border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
-      color: #bfdbfe;
+      border: 1px solid rgba(148,163,184,0.75);
+      padding: 7px 11px;
+      background: rgba(15,23,42,0.96);
+      color: #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.7);
+    }
+
+    .region-input-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.7);
+    }
+
+    .region-input-row .btn-geo {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: radial-gradient(circle at 0 0, rgba(16,185,129,0.2), rgba(15,23,42,0.98));
+      color: #bbf7d0;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
     }
 
-    .small-link-btn a {
-      color: inherit;
-      text-decoration: none;
+    .region-hint {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 6px;
     }
 
-    .cards-column {
+    .cities-error {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #fecaca;
+    }
+
+    .cities-error a {
+      color: #bfdbfe;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    main {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 10px;
+    }
+
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (min-width: 880px) {
+      .cards-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 10px;
+        align-items: flex-start;
+      }
     }
 
     .card {
+      background: var(--bg-card);
       border-radius: var(--card-radius);
-      background: linear-gradient(135deg, #020617, #020617);
-      border: 1px solid var(--border-soft);
-      padding: 10px 12px;
+      border: 1px solid rgba(30,64,175,0.7);
+      padding: 10px 11px;
+      box-shadow: var(--shadow-soft);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .card-title {
       font-size: 14px;
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
-    .card-sub {
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    .event-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .event-card {
-      border-radius: 14px;
-      padding: 8px 10px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      font-size: 13px;
-    }
-
-    .event-card.level-low {
-      border-left: 4px solid #22c55e;
-      background: linear-gradient(90deg, #022c22, #020617);
-    }
-
-    .event-card.level-medium {
-      border-left: 4px solid #f97316;
-      background: linear-gradient(90deg, #431407, #020617);
-    }
-
-    .event-card.level-high {
-      border-left: 4px solid #ef4444;
-      background: linear-gradient(90deg, #450a0a, #020617);
-    }
-
-    .event-main-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: baseline;
-    }
-
-    .event-location {
-      font-weight: 500;
-      font-size: 13px;
-    }
-
-    .event-mag {
-      font-weight: 700;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      border-radius: 999px;
-      padding: 2px 8px;
+    .card-subtitle {
       font-size: 11px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
       color: var(--text-soft);
     }
 
-    .pill-ago {
-      border-color: #4b5563;
-    }
-
-    .pill-distance {
-      border-color: #38bdf8;
-      color: #bae6fd;
-    }
-
-    .pill-depth {
-      border-color: #a855f7;
-      color: #e9d5ff;
-    }
-
-    .pill-mag-low {
-      border-color: #22c55e;
-      color: #bbf7d0;
-    }
-
-    .pill-mag-medium {
-      border-color: #f97316;
-      color: #fed7aa;
-    }
-
-    .pill-mag-high {
-      border-color: #ef4444;
-      color: #fecaca;
-    }
-
-    .footer-note {
-      margin-top: 16px;
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    .footer-note a {
-      color: #93c5fd;
-      text-decoration: none;
-    }
-
-    .footer-note a:hover {
-      text-decoration: underline;
-    }
-
-    .warning-banner {
-      border-radius: 14px;
-      padding: 10px 12px;
-      margin-top: 8px;
-      font-size: 13px;
-      display: none;
-    }
-
-    .warning-banner.level-info {
-      background: #022c22;
-      border: 1px solid #16a34a;
-      color: #bbf7d0;
-    }
-
-    .warning-banner.level-warning {
-      background: #431407;
-      border: 1px solid #f97316;
-      color: #fed7aa;
-    }
-
-    .warning-banner.level-danger {
-      background: #450a0a;
-      border: 1px solid #ef4444;
-      color: #fecaca;
-    }
-
-    .warning-title {
-      font-weight: 600;
-      margin-bottom: 4px;
+    .events-list {
       display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .warning-body {
-      margin-bottom: 4px;
-    }
-
-    .warning-extra {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .safety-btn-inline {
+      flex-direction: column;
+      gap: 8px;
       margin-top: 6px;
     }
 
-    .safety-btn-inline .btn {
-      font-size: 11px;
-      padding: 5px 9px;
+    .event-item {
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: radial-gradient(circle at top, #020617 0, #020617 45%, #01030a 100%);
+      border: 1px solid rgba(30,64,175,0.7);
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Modals */
+    .event-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.16;
+      pointer-events: none;
+    }
+
+    .event-row-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .event-timeago {
+      font-weight: 500;
+    }
+
+    .event-mag {
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .event-row-secondary {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 1px;
+    }
+
+    .event-row-place {
+      font-size: 11px;
+      color: #c4c9d4;
+    }
+
+    .event-source {
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-top: 2px;
+      opacity: 0.75;
+    }
+
+    .severity-low {
+      border-color: rgba(34,197,94,0.8);
+    }
+
+    .severity-low::before {
+      background: radial-gradient(circle at 0 0, rgba(22,163,74,0.35), transparent 55%);
+    }
+
+    .severity-mid {
+      border-color: rgba(245,158,11,0.9);
+    }
+
+    .severity-mid::before {
+      background: radial-gradient(circle at 0 0, rgba(245,158,11,0.35), transparent 55%);
+    }
+
+    .severity-high {
+      border-color: rgba(239,68,68,0.95);
+    }
+
+    .severity-high::before {
+      background: radial-gradient(circle at 0 0, rgba(248,113,113,0.45), transparent 60%);
+    }
+
+    .severity-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .severity-high .severity-label {
+      color: #fecaca;
+    }
+
+    .severity-mid .severity-label {
+      color: #fef3c7;
+    }
+
+    .severity-low .severity-label {
+      color: #bbf7d0;
+    }
+
+    .empty-text {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .card-safety-body {
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+
+    .btn-inline {
+      display: inline-flex;
+      margin-top: 2px;
+      font-size: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: radial-gradient(circle at 0 0, rgba(56,189,248,0.15), rgba(15,23,42,0.95));
+      color: #e0f2fe;
+      cursor: pointer;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .world-label {
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    footer {
+      margin-top: 14px;
+      font-size: 11px;
+      color: var(--text-soft);
+      border-top: 1px solid rgba(30,64,175,0.7);
+      padding-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    footer a {
+      color: #bfdbfe;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .footer-links a {
+      text-decoration: underline;
+    }
+
+    /* Модалки */
 
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: #020617dd;
+      background: rgba(15,23,42,0.8);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 50;
+      z-index: 100;
+      padding: 12px;
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
     }
 
     .modal {
-      max-width: 480px;
-      width: calc(100% - 32px);
-      max-height: calc(100% - 40px);
-      border-radius: 18px;
+      max-width: 640px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
       background: #020617;
-      border: 1px solid var(--border-soft);
-      padding: 14px 14px 16px;
-      overflow-y: auto;
-      box-shadow: 0 18px 45px #000000aa;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.7);
+      box-shadow: 0 22px 60px rgba(0,0,0,0.8);
+      padding: 14px 14px 12px;
+      font-size: 13px;
+      color: #e5e7eb;
     }
 
     .modal-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
       gap: 8px;
+      align-items: center;
       margin-bottom: 8px;
     }
 
     .modal-title {
-      font-size: 15px;
       font-weight: 600;
+      font-size: 15px;
     }
 
     .modal-close {
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      width: 24px;
-      height: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: #020617;
+      border: none;
+      background: transparent;
       color: var(--text-soft);
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
+      line-height: 1;
     }
 
-    .modal-body {
+    .modal-section-title {
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 3px;
       font-size: 13px;
+    }
+
+    .modal p {
+      margin: 2px 0 4px;
+      font-size: 12px;
       color: var(--text-soft);
     }
 
-    .modal-body p {
-      margin: 4px 0;
+    .modal ul {
+      margin: 4px 0 6px 18px;
+      padding: 0;
+      font-size: 12px;
+      color: var(--text-soft);
     }
 
-    .modal-body ul {
-      padding-left: 18px;
-      margin: 4px 0;
-    }
-
-    .modal-body li {
+    .modal ul li {
       margin-bottom: 3px;
     }
 
-    .donate-actions {
+    .donate-buttons {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
     }
 
     .donate-btn {
+      border-radius: 999px;
+      padding: 7px 11px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: radial-gradient(circle at 0 0, rgba(34,197,94,0.18), rgba(15,23,42,0.96));
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
-      border-radius: 999px;
-      padding: 8px 12px;
-      border: 1px solid var(--border-soft);
-      background: #020617;
-      color: #fecaca;
+      font-size: 12px;
+      color: #dcfce7;
+      cursor: pointer;
       text-decoration: none;
-      font-size: 13px;
     }
 
-    .donate-btn.primary {
-      background: linear-gradient(135deg, #f97316, #b91c1c);
-      border-color: #f97316;
-      color: #1f2937;
-      font-weight: 600;
+    .donate-btn.secondary {
+      background: radial-gradient(circle at 0 0, rgba(59,130,246,0.2), rgba(15,23,42,0.96));
+      color: #dbeafe;
     }
 
-    .donate-btn span.heart {
-      font-size: 15px;
+    .donate-note {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 6px;
     }
 
-    @media (min-width: 640px) {
-      .btn-row {
-        justify-content: flex-start;
-      }
+    .warning-banner {
+      background: radial-gradient(circle at 0 0, rgba(239,68,68,0.3), rgba(88,28,135,0.6));
+      border-radius: 12px;
+      border: 1px solid rgba(239,68,68,0.9);
+      padding: 7px 9px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #fee2e2;
     }
 
-    @media (min-width: 768px) {
-      .app-shell {
-        padding: 20px 24px 32px;
-      }
+    .warning-banner strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
 
-      header {
-        margin-bottom: 10px;
-      }
-
-      .app-title-block h1 {
-        font-size: 24px;
-      }
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app">
     <header>
-      <div class="logo-circle">SW</div>
-      <div class="app-title-block">
-        <h1>Seismo-Wake</h1>
-        <p>Раннее понимание, где и как далеко были толчки рядом с вами</p>
+      <div class="header-top">
+        <div class="app-title">
+          <span class="logo-dot"></span>
+          <span data-i18n="app_title">Seismo-Wake</span>
+        </div>
+        <div class="lang-switcher">
+          <button class="lang-btn active" data-lang="ru">RU</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="kz">KZ</button>
+          <button class="lang-btn" data-lang="fr">FR</button>
+        </div>
+      </div>
+      <div class="tagline" data-i18n="tagline">
+        Раннее понимание, где и как далеко были толчки рядом с вами.
+      </div>
+
+      <div class="top-buttons">
+        <button id="btnRefresh" class="btn btn-primary">
+          <span class="btn-icon">⚡</span>
+          <span data-i18n="btn_refresh">Обновить данные</span>
+        </button>
+
+        <button id="btnInstall" class="btn">
+          <span class="btn-icon">⬇️</span>
+          <span data-i18n="btn_install">Установить приложение</span>
+        </button>
+
+        <button id="btnDonate" class="btn">
+          <span class="btn-icon">❤️</span>
+          <span data-i18n="btn_donate">Поддержать проект</span>
+        </button>
+
+        <button id="btnHow" class="btn">
+          <span class="btn-icon">❓</span>
+          <span data-i18n="btn_how">Как это работает</span>
+        </button>
+      </div>
+
+      <div class="update-row">
+        <div id="spinner" class="spinner"></div>
+        <div id="updateText" data-i18n="updated_initial">Обновление ещё не выполнялось</div>
+        <div class="source-label" id="sourceLabel">
+          USGS · all_day + all_week
+        </div>
       </div>
     </header>
 
-    <div class="lang-switch">
-      <button class="lang-btn active" data-lang="ru">RU</button>
-      <button class="lang-btn" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="kz">KZ</button>
-      <button class="lang-btn" data-lang="fr">FR</button>
-    </div>
-
-    <h2 class="section-title">Онлайн-мониторинг</h2>
-    <div class="top-row">
-      <div class="updated-label" id="updated-label">Обновлено: —</div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" id="btn-refresh">⚡ Обновить данные</button>
-      <button class="btn btn-ghost" id="btn-install">⬇️ Установить приложение</button>
-      <button class="btn" id="btn-donate">❤️ Поддержать проект</button>
-      <button class="btn" id="btn-how">❓ Как это работает</button>
-    </div>
-
-    <div class="region-label" id="region-label">Ваш регион: <span>—</span></div>
-
-    <div id="warning-banner" class="warning-banner">
-      <div class="warning-title" id="warning-title"></div>
-      <div class="warning-body" id="warning-body"></div>
-      <div class="warning-extra" id="warning-extra"></div>
-      <div class="safety-btn-inline">
-        <button class="btn btn-ghost" id="btn-open-safety">📋 Как себя вести</button>
+    <section class="region-card">
+      <div class="warning-banner hidden" id="warningBanner">
+        <strong id="warningTitle">Сильное землетрясение поблизости!</strong>
+        <span id="warningText">
+          Если вы почувствовали заметные толчки, сохраняйте спокойствие, оцените обстановку и следуйте памятке безопасности ниже.
+        </span>
       </div>
-    </div>
 
-    <div class="live-row-title">В реальном времени</div>
-
-    <div class="location-row">
-      <div class="location-input-wrapper">
-        <input id="location-input" list="city-list" placeholder="Город или регион (Almaty, Astana, Urumqi…)" />
-        <datalist id="city-list"></datalist>
+      <div class="region-header">
+        <div>
+          <div class="region-label" data-i18n="region_label">Ваш регион:</div>
+          <div class="region-current" id="currentRegion">Almaty (по умолчанию)</div>
+        </div>
       </div>
-      <button class="btn" id="btn-use-geo">📍 Моё местоположение</button>
-    </div>
 
-    <div class="location-row">
-      <span class="small-note" id="city-hint">
+      <div class="region-input-row">
+        <input id="cityInput" list="citiesList" autocomplete="off" data-i18n="location_placeholder"
+               placeholder="Город или регион (Almaty, Astana, Urumqi…)" />
+        <datalist id="citiesList"></datalist>
+        <button id="btnGeo" class="btn-geo">
+          <span class="btn-icon">📍</span>
+          <span data-i18n="btn_use_geo">Моё местоположение</span>
+        </button>
+      </div>
+
+      <div class="region-hint" data-i18n="city_hint">
         Поддерживаются основные города и столицы. Если город не найден, используется последнее известное местоположение.
-      </span>
-    </div>
+      </div>
 
-    <div class="location-row">
-      <button class="small-link-btn" id="btn-open-online">
-        🔗 Открыть онлайн-версию
-      </button>
-    </div>
+      <div class="cities-error hidden" id="citiesError">
+        <span data-i18n="cities_error_text">
+          Не удалось загрузить список городов.
+        </span>
+        <a href="https://zhanat-arch.github.io/Seismo-Wake/" target="_blank" rel="noopener noreferrer" data-i18n="cities_error_link">
+          Открыть онлайн-версию
+        </a>
+      </div>
+    </section>
 
-    <div class="cards-column">
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">Последнее значимое событие поблизости</div>
-        </div>
-        <div id="last-significant" class="event-list small-note">
-          Нет данных. Нажмите «Обновить данные».
-        </div>
-      </section>
+    <main>
+      <div class="cards-grid">
+        <section class="card" id="cardLastSignificant">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_last_significant">
+              Последнее значимое событие поблизости
+            </div>
+          </div>
+          <div id="lastSignificantContainer">
+            <div class="empty-text" data-i18n="no_last_significant">
+              Рядом пока не было значимых событий.
+            </div>
+          </div>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">За последний час поблизости</div>
-        </div>
-        <div id="near-hour" class="event-list small-note">
-          Нет событий за последний час поблизости.
-        </div>
-      </section>
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_world_strong">Сильные землетрясения в мире (24 часа)</div>
+          </div>
+          <div id="worldStrongContainer" class="events-list">
+            <div class="empty-text" data-i18n="no_world_strong">
+              За последние сутки не найдено сильных событий (M5.5+) по данным источника.
+            </div>
+          </div>
+          <div class="world-label" data-i18n="world_label_hint">
+            Учитываются только землетрясения, официально попавшие в сводку источника.
+          </div>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">⏱️ За последние сутки поблизости</div>
-        </div>
-        <div id="near-day" class="event-list small-note">
-          Нет событий за последние сутки поблизости.
-        </div>
-      </section>
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_near_hour">За последний час поблизости</div>
+          </div>
+          <div id="nearHourContainer" class="events-list">
+            <div class="empty-text" data-i18n="no_hour_events">
+              Нет событий за последний час поблизости.
+            </div>
+          </div>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">За последнюю неделю поблизости</div>
-        </div>
-        <div id="near-week" class="event-list small-note">
-          Нет событий за последнюю неделю поблизости.
-        </div>
-      </section>
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_near_day">За последние сутки поблизости</div>
+          </div>
+          <div id="nearDayContainer" class="events-list">
+            <div class="empty-text" data-i18n="no_day_events">
+              Нет дополнительных событий за последние сутки поблизости.
+            </div>
+          </div>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">Сильные землетрясения в мире (24 часа)</div>
-        </div>
-        <div id="world-strong" class="event-list small-note">
-          Нет данных. Нажмите «Обновить данные».
-        </div>
-      </section>
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_near_week">За последнюю неделю поблизости</div>
+          </div>
+          <div id="nearWeekContainer" class="events-list">
+            <div class="empty-text" data-i18n="no_week_events">
+              Нет дополнительных событий за последнюю неделю поблизости.
+            </div>
+          </div>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">📋 Памятка по безопасности</div>
-        </div>
-        <div class="card-sub">Кратко о том, как вести себя при ощутимых толчках.</div>
-        <div style="margin-top: 8px;">
-          <button class="btn btn-ghost" id="btn-safety-main">Как себя вести при землетрясении</button>
-        </div>
-      </section>
-    </div>
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title" data-i18n="card_safety_title">📋 Памятка по безопасности</div>
+          </div>
+          <div class="card-safety-body" data-i18n="card_safety_body">
+            Кратко о том, как вести себя при ощутимых толчках. Эти советы не заменяют официальные инструкции, но помогают сохранить спокойствие и здравый смысл.
+          </div>
+          <button id="btnSafety" class="btn-inline">
+            <span class="btn-icon">📘</span>
+            <span data-i18n="btn_safety_main">
+              Как себя вести при землетрясении
+            </span>
+          </button>
+        </section>
+      </div>
+    </main>
 
-    <div class="footer-note">
-      Важно: приложение работает локально в вашем браузере, но для получения актуальных данных о землетрясениях нужен интернет.
-      <br />
-      Код проекта: <a href="https://github.com/zhanat-arch/Seismo-Wake" target="_blank" rel="noopener noreferrer">GitHub / Seismo-Wake</a>.
-    </div>
+    <footer>
+      <div data-i18n="footer_text">
+        Важно: приложение работает локально в вашем браузере, но для получения актуальных данных о землетрясениях нужен интернет.
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/zhanat-arch/Seismo-Wake" target="_blank" rel="noopener noreferrer">
+          GitHub: Seismo-Wake
+        </a>
+        <a href="https://github.com/zhanat-arch" target="_blank" rel="noopener noreferrer" data-i18n="footer_dev_profile">
+          Страница разработчика
+        </a>
+      </div>
+    </footer>
   </div>
 
-  <!-- Звук тревоги: положи рядом с index.html файл alert.mp3 (короткий «пик-пик») -->
-  <audio id="alertAudio" preload="auto">
-    <source src="alert.mp3" type="audio/mpeg" />
-  </audio>
-
-  <!-- Модал: донат -->
-  <div id="modal-donate-backdrop" class="modal-backdrop">
+  <!-- Модалка: Как это работает -->
+  <div class="modal-backdrop" id="modalHow">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">❤️ Поддержать Seismo-Wake</div>
-        <button class="modal-close" data-close-modal="donate">✕</button>
+        <div class="modal-title" data-i18n="modal_how_title">Как работает Seismo-Wake</div>
+        <button class="modal-close" data-close-modal="modalHow">✕</button>
       </div>
-      <div class="modal-body">
-        <p>
-          Ваш донат помогает развивать Seismo-Wake, улучшать алгоритмы и делать отображение толчков более понятным и наглядным.
-          Даже небольшая сумма важна.
+      <div class="modal-content">
+        <p data-i18n="modal_how_intro">
+          Seismo-Wake — это лёгкое веб-приложение, которое помогает понять, где и как далеко от вас были недавние землетрясения.
         </p>
-        <div class="donate-actions">
-          <a class="donate-btn primary" href="https://boosty.to/zhanat-arch" target="_blank" rel="noopener noreferrer">
-            <span class="heart">❤️</span> Поддержать банковской картой (Boosty)
+
+        <div class="modal-section-title" data-i18n="modal_how_section1_title">1. Откуда берутся данные</div>
+        <p data-i18n="modal_how_section1_text">
+          Приложение получает информацию с открытого сейсмического источника (например, USGS) в формате GeoJSON за последние сутки и неделю.
+          События сгруппированы по времени (час, сутки, неделя) и по расстоянию от выбранного региона.
+        </p>
+
+        <div class="modal-section-title" data-i18n="modal_how_section2_title">2. Как определяется «поблизости»</div>
+        <p data-i18n="modal_how_section2_text">
+          По умолчанию поблизости считается всё, что находится примерно в пределах нескольких сотен километров от выбранного города
+          или от вашего местоположения (если вы разрешили доступ к геолокации). Точное расстояние считается по географическим координатам.
+        </p>
+
+        <div class="modal-section-title" data-i18n="modal_how_section3_title">3. Почему обновление не работает в фоне</div>
+        <p data-i18n="modal_how_section3_text">
+          Seismo-Wake работает внутри браузера. Когда вы сворачиваете вкладку или гасите экран, Android/iOS ограничивают работу скриптов,
+          поэтому приложение не может опрашивать данные каждые 10 секунд в фоне и подавать сигнал автоматически. Это техническое ограничение
+          мобильных систем. Пока приложение открыто на экране, оно регулярно обновляет данные и показывает актуальную информацию.
+        </p>
+
+        <div class="modal-section-title" data-i18n="modal_how_section4_title">4. Установка как приложение (PWA)</div>
+        <p data-i18n="modal_how_section4_text">
+          Seismo-Wake можно установить как приложение (PWA): откройте онлайн-версию, дождитесь появления кнопки «Установить приложение» в браузере
+          и добавьте Seismo-Wake на главный экран. Запуск будет происходить в отдельном окне, без лишних элементов браузера.
+        </p>
+
+        <p data-i18n="modal_how_section5_text">
+          За новостями о проекте и обновлениях можно следить на GitHub:
+        </p>
+        <p>
+          <a href="https://github.com/zhanat-arch/Seismo-Wake" target="_blank" rel="noopener noreferrer">
+            github.com/zhanat-arch/Seismo-Wake
           </a>
-          <a class="donate-btn" href="https://ko-fi.com/zhanat_arch" target="_blank" rel="noopener noreferrer">
-            ☕ Поддержать через PayPal / Ko-fi
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка: Памятка безопасности -->
+  <div class="modal-backdrop" id="modalSafety">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" data-i18n="modal_safety_title">Памятка по безопасности при землетрясении</div>
+        <button class="modal-close" data-close-modal="modalSafety">✕</button>
+      </div>
+      <div class="modal-content">
+        <p data-i18n="modal_safety_disclaimer">
+          Эти советы носят общий характер и не заменяют официальные инструкции МЧС и местных служб. Всегда следуйте указаниям властей и учитывайте реальные условия вокруг вас.
+        </p>
+
+        <div class="modal-section-title" data-i18n="modal_safety_now_title">Если толчки уже начались</div>
+        <ul>
+          <li data-i18n="modal_safety_now_1">Сохраните максимально возможное спокойствие, оцените обстановку вокруг и избегайте паники.</li>
+          <li data-i18n="modal_safety_now_2">Если вы в доме — отойдите от стекла и тяжёлой мебели, не стойте под люстрами и полками.</li>
+          <li data-i18n="modal_safety_now_3">Если знаете, где в доме проходят ригели или капитальные стены — старайтесь быть рядом с ними, но не под нависающими предметами.</li>
+          <li data-i18n="modal_safety_now_4">Не пользуйтесь лифтом, не выбегайте в панике по лестнице во время сильных толчков.</li>
+        </ul>
+
+        <div class="modal-section-title" data-i18n="modal_safety_after_title">После ощутимых толчков</div>
+        <ul>
+          <li data-i18n="modal_safety_after_1">Проверьте своё состояние и состояние людей рядом. При необходимости вызовите скорую или службу спасения.</li>
+          <li data-i18n="modal_safety_after_2">Оцените помещение: есть ли трещины, обрушения, запах газа, задымление. При серьёзных повреждениях лучше покинуть здание.</li>
+          <li data-i18n="modal_safety_after_3">Будьте готовы к афтершокам — повторным толчкам меньшей силы. Они могут происходить в течение часов и дней.</li>
+        </ul>
+
+        <div class="modal-section-title" data-i18n="modal_safety_app_title">Как использовать Seismo-Wake после толчка</div>
+        <ul>
+          <li data-i18n="modal_safety_app_1">Откройте приложение и проверьте, было ли событие поблизости, насколько оно сильное и как далеко от вас.</li>
+          <li data-i18n="modal_safety_app_2">Помните: даже если на карте землетрясение далеко, локальные условия (качество здания, этаж, грунт) могут усиливать ощущение.</li>
+          <li data-i18n="modal_safety_app_3">Используйте данные Seismo-Wake как дополнительную информацию, а не как единственный источник решения, что делать.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка: Донат -->
+  <div class="modal-backdrop" id="modalDonate">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" data-i18n="modal_donate_title">Поддержать разработчика</div>
+        <button class="modal-close" data-close-modal="modalDonate">✕</button>
+      </div>
+      <div class="modal-content">
+        <p data-i18n="modal_donate_text">
+          Ваш донат помогает развивать Seismo-Wake и делать такие инструменты доступными бесплатно. Если хотите, можете поддержать проект через удобный сервис:
+        </p>
+
+        <div class="donate-buttons">
+          <a class="donate-btn" href="https://boosty.to/zhanat-arch" target="_blank" rel="noopener noreferrer">
+            <span>💳</span>
+            <span data-i18n="modal_donate_boosty_btn">
+              Донат картой (Boosty)
+            </span>
+          </a>
+          <a class="donate-btn secondary" href="https://ko-fi.com/zhanat_arch" target="_blank" rel="noopener noreferrer">
+            <span>☕</span>
+            <span data-i18n="modal_donate_kofi_btn">
+              Donat / PayPal / card (Ko-fi)
+            </span>
           </a>
         </div>
-        <p style="margin-top:8px;">
-          Boosty принимает карты из многих стран. Ko-fi удобно использовать с PayPal и международными картами. Вы можете поддержать анонимно.
+
+        <p class="donate-note" data-i18n="modal_donate_thanks">
+          Спасибо за поддержку: даже маленький взнос может однажды помочь спасти чью-то жизнь, если сервис вовремя подскажет, что произошло землетрясение.
         </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Модал: как работает -->
-  <div id="modal-how-backdrop" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">ℹ️ Как работает Seismo-Wake</div>
-        <button class="modal-close" data-close-modal="how">✕</button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Seismo-Wake — это лёгкое веб-приложение, которое регулярно запрашивает данные о землетрясениях из открытых источников и показывает
-          события поблизости и по миру.
-        </p>
-        <p>
-          Приложение может работать как обычная веб-страница, как локальный HTML-файл и как прогрессивное веб-приложение (PWA), установленное
-          на главный экран смартфона.
-        </p>
-
-        <p><strong>Определение местоположения</strong></p>
-        <ul>
-          <li>Сначала пытаемся определить координаты через GPS (если вы разрешили доступ).</li>
-          <li>Если доступ к геолокации закрыт, можно выбрать город вручную из списка популярных городов.</li>
-          <li>Координаты используются только локально, чтобы посчитать расстояние до эпицентров.</li>
-        </ul>
-
-        <p><strong>Обновление данных</strong></p>
-        <ul>
-          <li>Данные обновляются при нажатии на кнопку «Обновить данные».</li>
-          <li>Пока вкладка с Seismo-Wake открыта, приложение может автоматически обновлять данные каждые несколько секунд.</li>
-          <li>
-            При достаточно сильном событии поблизости приложение выделяет его цветом и может подать короткий звуковой сигнал, чтобы вы обратили
-            внимание на экран.
-          </li>
-        </ul>
-
-        <p><strong>Онлайн-версия и обновления</strong></p>
-        <ul>
-          <li>Самая свежая версия всегда доступна по адресу: <code>https://zhanat-arch.github.io/Seismo-Wake/</code>.</li>
-          <li>Локальный HTML можно пересохранить из GitHub, чтобы обновить версию без установки.</li>
-        </ul>
-
-        <p>
-          Важно: приложение не заменяет официальные системы оповещения. При ощутимых толчках в первую очередь действуйте по инструкциям МЧС
-          и местных служб.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Модал: памятка по безопасности -->
-  <div id="modal-safety-backdrop" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">️Как вести себя при землетрясении</div>
-        <button class="modal-close" data-close-modal="safety">✕</button>
-      </div>
-      <div class="modal-body">
-        <p><strong>Во время землетрясения</strong></p>
-        <ul>
-          <li>Сохраняйте спокойствие. Не бегите к выходу, если толчки уже сильные.</li>
-          <li>Держитесь подальше от окон, стекла, тяжёлых шкафов и подвесных объектов.</li>
-          <li>
-            Если знаете, где проходят ригели или несущие стены, встаньте рядом с ними, но не под самим шкафом или стеклом.
-          </li>
-          <li>Если вы на улице — отходите от зданий, витрин, столбов и проводов.</li>
-        </ul>
-
-        <p><strong>После толчков</strong></p>
-        <ul>
-          <li>Осторожно осмотрите помещение. Не пользуйтесь лифтом, выбирайтесь по лестнице.</li>
-          <li>При запахе газа или подозрении на утечку — перекройте газ (если это безопасно) и выходите на улицу.</li>
-          <li>Будьте готовы к повторным толчкам, не возвращайтесь сразу под сомнительные конструкции.</li>
-        </ul>
-
-        <p><strong>Если вы дома</strong></p>
-        <ul>
-          <li>Не стойте в лёгком дверном проёме, если это не несущая стена.</li>
-          <li>Закройте газ, выключите открытое пламя, по возможности отключите электроприборы.</li>
-          <li>Держите рядом телефон, документы, воду и базовый набор вещей на случай эвакуации.</li>
-        </ul>
-
-        <p><strong>Если вы на улице или в машине</strong></p>
-        <ul>
-          <li>Отойдите от фасадов зданий, мостов, тоннелей и линий электропередачи.</li>
-          <li>В машине безопаснее остановиться вдали от путепроводов и зданий и оставаться внутри до окончания толчков.</li>
-        </ul>
-
-        <p>Эти рекомендации носят общий характер и не заменяют официальные инструкции спасательных служб.</p>
       </div>
     </div>
   </div>
 
   <script>
-    // --- Простая база известных городов (можно расширять) ---
-    const CITY_DB = [
-      { name: "Almaty, Kazakhstan", lat: 43.238949, lon: 76.889709 },
-      { name: "Astana, Kazakhstan", lat: 51.160523, lon: 71.470356 },
-      { name: "Shymkent, Kazakhstan", lat: 42.3417, lon: 69.5901 },
-      { name: "Urumqi, China", lat: 43.8256, lon: 87.6168 },
-      { name: "Bishkek, Kyrgyzstan", lat: 42.8746, lon: 74.5698 },
-      { name: "Tashkent, Uzbekistan", lat: 41.2995, lon: 69.2401 },
-      { name: "Dushanbe, Tajikistan", lat: 38.5598, lon: 68.7870 },
-      { name: "Moscow, Russia", lat: 55.7558, lon: 37.6173 },
-      { name: "Istanbul, Türkiye", lat: 41.0082, lon: 28.9784 },
-      { name: "Tokyo, Japan", lat: 35.6762, lon: 139.6503 },
-      { name: "Los Angeles, USA", lat: 34.0522, lon: -118.2437 },
-      { name: "San Francisco, USA", lat: 37.7749, lon: -122.4194 },
-      { name: "Santiago, Chile", lat: -33.4489, lon: -70.6693 },
-      { name: "Mexico City, Mexico", lat: 19.4326, lon: -99.1332 },
-      { name: "Tehran, Iran", lat: 35.6892, lon: 51.3890 },
-      { name: "Yerevan, Armenia", lat: 40.1792, lon: 44.4991 }
-    ];
+    // -------------------------
+    // БАЗОВЫЕ ПЕРЕВОДЫ (RU + EN)
+    // -------------------------
 
-    const DEFAULT_LOCATION = CITY_DB[0]; // Almaty по умолчанию
+    const baseTranslations = {
+      ru: {
+        app_title: "Seismo-Wake",
+        tagline: "Раннее понимание, где и как далеко были толчки рядом с вами.",
+        btn_refresh: "Обновить данные",
+        btn_install: "Установить приложение",
+        btn_donate: "Поддержать проект",
+        btn_how: "Как это работает",
+        region_label: "Ваш регион:",
+        location_placeholder: "Город или регион (Almaty, Astana, Urumqi…)",
+        btn_use_geo: "Моё местоположение",
+        city_hint: "Поддерживаются основные города и столицы. Если город не найден, используется последнее известное местоположение.",
+        cities_error_text: "Не удалось загрузить список городов.",
+        cities_error_link: "Открыть онлайн-версию",
+        card_last_significant: "Последнее значимое событие поблизости",
+        card_near_hour: "За последний час поблизости",
+        card_near_day: "За последние сутки поблизости",
+        card_near_week: "За последнюю неделю поблизости",
+        card_world_strong: "Сильные землетрясения в мире (24 часа)",
+        card_safety_title: "📋 Памятка по безопасности",
+        card_safety_body: "Кратко о том, как вести себя при ощутимых толчках. Эти советы не заменяют официальные инструкции, но помогают сохранить спокойствие и здравый смысл.",
+        btn_safety_main: "Как себя вести при землетрясении",
+        no_last_significant: "Рядом пока не было значимых событий.",
+        no_hour_events: "Нет событий за последний час поблизости.",
+        no_day_events: "Нет дополнительных событий за последние сутки поблизости.",
+        no_week_events: "Нет дополнительных событий за последнюю неделю поблизости.",
+        no_world_strong: "За последние сутки не найдено сильных событий (M5.5+) по данным источника.",
+        world_label_hint: "Учитываются только землетрясения, официально попавшие в сводку источника.",
+        footer_text: "Важно: приложение работает локально в вашем браузере, но для получения актуальных данных о землетрясениях нужен интернет.",
+        footer_dev_profile: "Страница разработчика",
 
-    let userLocation = {
-      name: DEFAULT_LOCATION.name,
-      lat: DEFAULT_LOCATION.lat,
-      lon: DEFAULT_LOCATION.lon,
-      source: "default" // default | gps | manual
+        updated_initial: "Обновление ещё не выполнялось",
+        updated_just_now: "Обновлено только что",
+        updated_seconds: "Обновлено: {n} сек назад",
+        updated_minutes: "Обновлено: {n} мин назад",
+        updated_hours: "Обновлено: {n} ч назад",
+        updated_date: "Обновлено: {date}",
+
+        warning_title_danger: "Сильное землетрясение поблизости!",
+        warning_text_danger: "Если вы почувствовали сильные толчки, оцените состояние здания и людей вокруг, при необходимости покиньте опасное место и следуйте официальным указаниям служб.",
+        warning_title_noticeable: "Возможны ощутимые толчки в регионе.",
+        warning_text_noticeable: "Даже умеренное землетрясение может ощущаться сильнее на верхних этажах и в слабых зданиях. Сохраняйте спокойствие и следуйте памятке безопасности ниже.",
+        warning_title_none: "",
+
+        modal_how_title: "Как работает Seismo-Wake",
+        modal_how_intro: "Seismo-Wake — это лёгкое веб-приложение, которое помогает понять, где и как далеко от вас были недавние землетрясения.",
+        modal_how_section1_title: "1. Откуда берутся данные",
+        modal_how_section1_text: "Приложение получает информацию с открытого сейсмического источника (например, USGS) в формате GeoJSON за последние сутки и неделю. События сгруппированы по времени (час, сутки, неделя) и по расстоянию от выбранного региона.",
+        modal_how_section2_title: "2. Как определяется «поблизости»",
+        modal_how_section2_text: "Поблизости считается всё, что находится примерно в пределах нескольких сотен километров от выбранного города или от вашего местоположения. Точное расстояние считается по географическим координатам.",
+        modal_how_section3_title: "3. Почему обновление не работает в фоне",
+        modal_how_section3_text: "Когда вы сворачиваете вкладку или гасите экран, мобильная система ограничивает работу скриптов. Поэтому приложение не может опрашивать данные каждые 10 секунд в фоне и автоматически подавать сигнал. Пока Seismo-Wake открыто на экране, оно регулярно обновляет данные и показывает актуальную информацию.",
+        modal_how_section4_title: "4. Установка как приложение (PWA)",
+        modal_how_section4_text: "Seismo-Wake можно установить как PWA: откройте онлайн-версию, дождитесь предложения «Установить приложение» в браузере и добавьте его на главный экран. Запуск будет происходить в отдельном окне, без лишних элементов браузера.",
+        modal_how_section5_text: "За новостями о проекте и обновлениях можно следить на GitHub:",
+
+        modal_safety_title: "Памятка по безопасности при землетрясении",
+        modal_safety_disclaimer: "Эти советы носят общий характер и не заменяют официальные инструкции МЧС и местных служб. Всегда следуйте указаниям властей и учитывайте реальные условия вокруг вас.",
+        modal_safety_now_title: "Если толчки уже начались",
+        modal_safety_now_1: "Сохраните максимально возможное спокойствие, оцените обстановку вокруг и избегайте паники.",
+        modal_safety_now_2: "Если вы в доме — отойдите от стекла и тяжёлой мебели, не стойте под люстрами и полками.",
+        modal_safety_now_3: "Если знаете, где в доме проходят ригели или капитальные стены — старайтесь быть рядом с ними, но не под нависающими предметами.",
+        modal_safety_now_4: "Не пользуйтесь лифтом, не выбегайте в панике по лестнице во время сильных толчков.",
+        modal_safety_after_title: "После ощутимых толчков",
+        modal_safety_after_1: "Проверьте своё состояние и состояние людей рядом. При необходимости вызовите скорую или службу спасения.",
+        modal_safety_after_2: "Оцените помещение: есть ли трещины, обрушения, запах газа, задымление. При серьёзных повреждениях лучше покинуть здание.",
+        modal_safety_after_3: "Будьте готовы к афтершокам — повторным толчкам меньшей силы. Они могут происходить в течение часов и дней.",
+        modal_safety_app_title: "Как использовать Seismo-Wake после толчка",
+        modal_safety_app_1: "Откройте приложение и проверьте, было ли событие поблизости, насколько оно сильное и как далеко от вас.",
+        modal_safety_app_2: "Помните: даже если на карте землетрясение далеко, локальные условия (качество здания, этаж, грунт) могут усиливать ощущение.",
+        modal_safety_app_3: "Используйте данные Seismo-Wake как дополнительную информацию, а не как единственный источник решения, что делать.",
+
+        modal_donate_title: "Поддержать разработчика",
+        modal_donate_text: "Ваш донат помогает развивать Seismo-Wake и делать такие инструменты доступными бесплатно. Если хотите, можете поддержать проект через удобный сервис:",
+        modal_donate_boosty_btn: "Донат картой (Boosty)",
+        modal_donate_kofi_btn: "Donat / PayPal / card (Ko-fi)",
+        modal_donate_thanks: "Спасибо за поддержку: даже маленький взнос может однажды помочь спасти чью-то жизнь, если сервис вовремя подскажет, что произошло землетрясение."
+      },
+      en: {
+        app_title: "Seismo-Wake",
+        tagline: "Early insight into where and how far quakes happened around you.",
+        btn_refresh: "Refresh data",
+        btn_install: "Install app",
+        btn_donate: "Support the project",
+        btn_how: "How it works",
+        region_label: "Your region:",
+        location_placeholder: "City or region (Almaty, Astana, Urumqi…)",
+        btn_use_geo: "My location",
+        city_hint: "Major cities and capitals are supported. If a city is not found, the last known location is used.",
+        cities_error_text: "Failed to load city list.",
+        cities_error_link: "Open online version",
+        card_last_significant: "Latest significant event nearby",
+        card_near_hour: "Last hour nearby",
+        card_near_day: "Last 24 hours nearby",
+        card_near_week: "Last week nearby",
+        card_world_strong: "Strong quakes worldwide (24h)",
+        card_safety_title: "📋 Safety tips",
+        card_safety_body: "Short reminder how to act during noticeable shaking. These tips do not replace official instructions but help to stay calm and reasonable.",
+        btn_safety_main: "How to act during an earthquake",
+        no_last_significant: "No significant events nearby so far.",
+        no_hour_events: "No nearby events in the last hour.",
+        no_day_events: "No additional nearby events in the last 24 hours.",
+        no_week_events: "No additional nearby events in the last week.",
+        no_world_strong: "No strong events (M5.5+) detected in the last 24 hours according to the source.",
+        world_label_hint: "Only earthquakes that appear in the official feed are taken into account.",
+        footer_text: "Important: the app runs locally in your browser, but internet access is required to fetch up-to-date earthquake data.",
+        footer_dev_profile: "Developer profile",
+
+        updated_initial: "No update yet",
+        updated_just_now: "Updated just now",
+        updated_seconds: "Updated: {n} s ago",
+        updated_minutes: "Updated: {n} min ago",
+        updated_hours: "Updated: {n} h ago",
+        updated_date: "Updated: {date}",
+
+        warning_title_danger: "Strong earthquake nearby!",
+        warning_text_danger: "If you felt strong shaking, assess the building and people around you, leave dangerous areas if needed and follow official guidance from authorities.",
+        warning_title_noticeable: "Noticeable shaking is possible in your region.",
+        warning_text_noticeable: "Even a moderate earthquake can feel stronger on upper floors or in weaker buildings. Stay calm and follow the safety tips below.",
+        warning_title_none: "",
+
+        modal_how_title: "How Seismo-Wake works",
+        modal_how_intro: "Seismo-Wake is a lightweight web app that helps you understand where and how far recent earthquakes occurred around you.",
+        modal_how_section1_title: "1. Data source",
+        modal_how_section1_text: "The app receives information from an open seismic source (e.g. USGS) in GeoJSON format for the last day and week. Events are grouped by time (hour, day, week) and distance from your region.",
+        modal_how_section2_title: "2. What counts as \"nearby\"",
+        modal_how_section2_text: "Nearby means roughly within a few hundred kilometers from the selected city or your current location. Exact distance is computed using geographic coordinates.",
+        modal_how_section3_title: "3. Why background updates are limited",
+        modal_how_section3_text: "When you minimize the tab or turn the screen off, the mobile OS throttles scripts. Because of that, the app cannot poll data every 10 seconds in the background and play alerts automatically. While Seismo-Wake is open on screen, it refreshes data regularly and shows current information.",
+        modal_how_section4_title: "4. Install as app (PWA)",
+        modal_how_section4_text: "You can install Seismo-Wake as a PWA: open the online version, wait for the browser to suggest \"Install app\", and add it to your home screen. It will run in a separate window without extra browser UI.",
+        modal_how_section5_text: "You can follow the project and updates on GitHub:",
+
+        modal_safety_title: "Safety tips during an earthquake",
+        modal_safety_disclaimer: "These tips are general and do not replace official guidance from authorities. Always follow local emergency services and take real conditions into account.",
+        modal_safety_now_title: "If shaking has already started",
+        modal_safety_now_1: "Stay as calm as possible, quickly assess your surroundings and avoid panic.",
+        modal_safety_now_2: "Indoors, move away from glass and heavy furniture; do not stand under chandeliers or shelves.",
+        modal_safety_now_3: "If you know where structural beams or strong walls are, stay near them but not under heavy hanging objects.",
+        modal_safety_now_4: "Do not use elevators and avoid running in panic down stairways during strong shaking.",
+        modal_safety_after_title: "After noticeable shaking",
+        modal_safety_after_1: "Check yourself and people nearby. Call emergency services if needed.",
+        modal_safety_after_2: "Assess the building: cracks, collapses, gas smell, smoke. Leave if there are serious signs of damage.",
+        modal_safety_after_3: "Be ready for aftershocks — smaller quakes that can follow for hours or days.",
+        modal_safety_app_title: "Using Seismo-Wake after shaking",
+        modal_safety_app_1: "Open the app and check whether there was an event nearby, how strong it was and how far from you.",
+        modal_safety_app_2: "Remember: even if the epicenter is far away, local conditions (building quality, floor, soil) can amplify shaking.",
+        modal_safety_app_3: "Use Seismo-Wake as an additional source of information, not the only basis for deciding what to do.",
+
+        modal_donate_title: "Support the developer",
+        modal_donate_text: "Your support helps keep Seismo-Wake free and improve it over time. If you wish, you can donate via:",
+        modal_donate_boosty_btn: "Donate by card (Boosty)",
+        modal_donate_kofi_btn: "Donat / PayPal / card (Ko-fi)",
+        modal_donate_thanks: "Thank you for your support: even a small donation can one day help this tool save someone's life by showing timely information."
+      }
     };
 
-    let lastFetchRawEvents = [];
-    let autoRefreshTimer = null;
-    const AUTO_REFRESH_MS = 10000; // 10 секунд
-    const EARTHQUAKE_FEED =
-      "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+    let extraTranslations = {}; // из translations-extra.json
+    let effectiveTranslations = {}; // base + extra
 
-    const updatedLabelEl = document.getElementById("updated-label");
-    const regionLabelEl = document.getElementById("region-label").querySelector("span");
-    const lastSignificantEl = document.getElementById("last-significant");
-    const nearHourEl = document.getElementById("near-hour");
-    const nearDayEl = document.getElementById("near-day");
-    const nearWeekEl = document.getElementById("near-week");
-    const worldStrongEl = document.getElementById("world-strong");
-    const warningBannerEl = document.getElementById("warning-banner");
-    const warningTitleEl = document.getElementById("warning-title");
-    const warningBodyEl = document.getElementById("warning-body");
-    const warningExtraEl = document.getElementById("warning-extra");
-    const cityInputEl = document.getElementById("location-input");
-    const cityListEl = document.getElementById("city-list");
-    const alertAudioEl = document.getElementById("alertAudio");
+    let currentLang = "ru";
 
-    function initCityDatalist() {
-      CITY_DB.forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.name;
-        cityListEl.appendChild(opt);
+    function buildEffectiveTranslations() {
+      const result = {};
+      const langs = new Set([
+        ...Object.keys(baseTranslations),
+        ...Object.keys(extraTranslations)
+      ]);
+      langs.forEach((lang) => {
+        result[lang] = {
+          ...(baseTranslations[lang] || {}),
+          ...(extraTranslations[lang] || {})
+        };
       });
+      effectiveTranslations = result;
     }
 
-    function updateRegionLabel() {
-      regionLabelEl.textContent = userLocation.name || "—";
+    function t(key, vars = null) {
+      const dict = (effectiveTranslations[currentLang] || effectiveTranslations["en"] || {});
+      let str = dict[key] || baseTranslations["ru"][key] || baseTranslations["en"][key] || "";
+      if (vars && typeof str === "string") {
+        str = str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+      }
+      return str;
     }
 
-    function formatAgo(timestampMs) {
-      if (!timestampMs) return "—";
-      const now = Date.now();
-      const diffMs = now - timestampMs;
-      if (diffMs < 0) return "только что";
-      const minutes = Math.floor(diffMs / 60000);
-      if (minutes < 1) return "только что";
-      if (minutes < 60) return minutes + " мин назад";
-      const hours = Math.floor(minutes / 60);
-      if (hours < 24) return hours + " ч назад";
-      const days = Math.floor(hours / 24);
-      return days + " дн назад";
+    function applyTranslations() {
+      document.documentElement.lang = currentLang;
+      const nodes = document.querySelectorAll("[data-i18n]");
+      nodes.forEach((el) => {
+        const key = el.dataset.i18n;
+        if (!key) return;
+        const text = t(key);
+        // placeholder для input
+        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+          el.placeholder = text;
+        } else {
+          el.textContent = text;
+        }
+      });
+      // обновим динамические тексты, зависящие от языка:
+      updateLastUpdateLabel(); // перерисуем строку "Обновлено ..."
+      updateWarningBanner();   // если есть предупреждение
     }
 
-    function formatLocalTime(timestampMs) {
-      const d = new Date(timestampMs);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      const hh = String(d.getHours()).padStart(2, "0");
-      const mm = String(d.getMinutes()).padStart(2, "0");
-      return `${day}.${m}.${y} ${hh}:${mm}`;
+    async function loadExtraTranslations() {
+      try {
+        const res = await fetch("translations-extra.json");
+        if (!res.ok) return;
+        const data = await res.json();
+        extraTranslations = data || {};
+      } catch (e) {
+        // молча игнорируем — просто останутся базовые переводы
+        extraTranslations = {};
+      } finally {
+        buildEffectiveTranslations();
+        applyTranslations();
+      }
     }
+
+    // -------------------------
+    // GLOABAL STATE
+    // -------------------------
+
+    const NEARBY_KM = 500; // что считаем "поблизости"
+    const SIGNIFICANT_MAG = 3.5; // что считаем "значимым" рядом
+    const WORLD_STRONG_MAG = 5.5;
+
+    const USGS_DAY_URL  = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+    const USGS_WEEK_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+
+    let userLocation = {
+      lat: 43.238949, // Алматы по умолчанию
+      lon: 76.889709,
+      label: "Almaty (default)"
+    };
+
+    let lastUpdateTime = null;
+    let updateTimerId = null;
+    let autoRefreshTimerId = null;
+
+    let lastDataDay = [];
+    let lastDataWeek = [];
+
+    let lastNearbyStrong = null; // для баннера и последнего события
+
+    // -------------------------
+    // UTILS
+    // -------------------------
 
     function haversineDistanceKm(lat1, lon1, lat2, lon2) {
-      function toRad(x) {
-        return (x * Math.PI) / 180;
-      }
       const R = 6371;
+      const toRad = (deg) => deg * Math.PI / 180;
       const dLat = toRad(lat2 - lat1);
       const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
 
-    function classifyLevel(mag, distanceKm) {
-      if (mag == null) return "low";
-      if (mag >= 6) return "high";
-      if (mag >= 5) return "medium";
-      if (mag >= 4 && distanceKm < 300) return "medium";
+    function formatTimeAgo(ts) {
+      const now = Date.now();
+      const diffMs = now - ts;
+      if (diffMs < 0) {
+        return t("updated_date", { date: new Date(ts).toLocaleString() });
+      }
+      const sec = Math.floor(diffMs / 1000);
+      const min = Math.floor(sec / 60);
+      const hr = Math.floor(min / 60);
+      if (sec < 5) return t("updated_just_now");
+      if (sec < 60) return t("updated_seconds", { n: sec });
+      if (min < 60) return t("updated_minutes", { n: min });
+      if (hr < 24) return t("updated_hours", { n: hr });
+      return t("updated_date", { date: new Date(ts).toLocaleString() });
+    }
+
+    function formatEventTimeAgo(ts) {
+      const now = Date.now();
+      const diffMs = now - ts;
+      const sec = Math.floor(diffMs / 1000);
+      const min = Math.floor(sec / 60);
+      const hr = Math.floor(min / 60);
+      const day = Math.floor(hr / 24);
+
+      if (sec < 60) {
+        return currentLang === "ru" ? `${sec} сек назад` :
+               currentLang === "kz" ? `${sec} сек бұрын` :
+               currentLang === "fr" ? `il y a ${sec} s` :
+               `${sec} s ago`;
+      }
+      if (min < 60) {
+        return currentLang === "ru" ? `${min} мин назад` :
+               currentLang === "kz" ? `${min} мин бұрын` :
+               currentLang === "fr" ? `il y a ${min} min` :
+               `${min} min ago`;
+      }
+      if (hr < 24) {
+        return currentLang === "ru" ? `${hr} ч назад` :
+               currentLang === "kz" ? `${hr} сағат бұрын` :
+               currentLang === "fr" ? `il y a ${hr} h` :
+               `${hr} h ago`;
+      }
+      if (day === 1) {
+        return currentLang === "ru" ? `1 день назад` :
+               currentLang === "kz" ? `1 күн бұрын` :
+               currentLang === "fr" ? `il y a 1 jour` :
+               `1 day ago`;
+      }
+      return currentLang === "ru" ? `${day} дн назад` :
+             currentLang === "kz" ? `${day} күн бұрын` :
+             currentLang === "fr" ? `il y a ${day} j` :
+             `${day} days ago`;
+    }
+
+    function classifySeverity(mag, distanceKm) {
+      if (mag >= 6.0 && distanceKm <= 300) return "high";
+      if (mag >= 5.0 && distanceKm <= 500) return "high";
+      if (mag >= 4.0 && distanceKm <= 500) return "mid";
+      if (mag >= 3.0 && distanceKm <= 700) return "mid";
       return "low";
     }
 
-    function magPillClass(level) {
-      if (level === "high") return "pill-mag-high";
-      if (level === "medium") return "pill-mag-medium";
-      return "pill-mag-low";
-    }
+    function createEventElement(ev) {
+      const div = document.createElement("div");
+      const severity = classifySeverity(ev.mag, ev.distanceKm);
+      div.className = "event-item severity-" + severity;
 
-    function playAlertBeep() {
-      if (!alertAudioEl) return;
-      try {
-        alertAudioEl.currentTime = 0;
-        alertAudioEl.play().catch(() => {});
-      } catch (e) {
-        console.log("alert sound error", e);
-      }
-    }
-
-    function checkForDangerEvent(events) {
-      if (!events || !events.length) {
-        warningBannerEl.style.display = "none";
-        return;
-      }
-      const now = Date.now();
-      const MAX_MINUTES = 15;
-      const MAX_DISTANCE_KM = 2000;
-      const MIN_MAG = 4.8;
-
-      let candidate = null;
-
-      for (const ev of events) {
-        if (typeof ev.mag !== "number") continue;
-        if (ev.distanceKm == null) continue;
-        const minutesAgo = (now - ev.time) / 60000;
-        if (minutesAgo > MAX_MINUTES) continue;
-        if (ev.distanceKm > MAX_DISTANCE_KM) continue;
-        if (ev.mag < MIN_MAG) continue;
-        if (!candidate || ev.mag > candidate.mag) {
-          candidate = ev;
-        }
-      }
-
-      if (!candidate) {
-        warningBannerEl.style.display = "none";
-        return;
-      }
-
-      const minutesAgo = (now - candidate.time) / 60000;
-      const level = candidate.mag >= 6 ? "danger" : "warning";
-      const levelClass =
-        level === "danger"
-          ? "level-danger"
-          : level === "warning"
-          ? "level-warning"
-          : "level-info";
-
-      warningBannerEl.className = `warning-banner ${levelClass}`;
-      warningTitleEl.textContent =
-        level === "danger"
-          ? "Сильное землетрясение поблизости!"
-          : "Возможны ощутимые толчки в регионе.";
-      warningBodyEl.textContent = `Магнитуда M${candidate.mag.toFixed(
-        1
-      )}, около ${Math.round(candidate.distanceKm)} км от вашего региона.`;
-
-      warningExtraEl.textContent =
-        "Сохраняйте спокойствие, держитесь подальше от стекла и тяжёлых предметов. При необходимости следуйте инструкциям МЧС.";
-
-      warningBannerEl.style.display = "block";
-
-      // Звук
-      playAlertBeep();
-    }
-
-    function renderEvents(groupId, events, emptyText) {
-      const container =
-        groupId === "last-significant"
-          ? lastSignificantEl
-          : groupId === "near-hour"
-          ? nearHourEl
-          : groupId === "near-day"
-          ? nearDayEl
-          : groupId === "near-week"
-          ? nearWeekEl
-          : worldStrongEl;
-
-      container.innerHTML = "";
-
-      if (!events || !events.length) {
-        container.textContent = emptyText;
-        return;
-      }
-
-      for (const ev of events) {
-        const level = classifyLevel(ev.mag, ev.distanceKm);
-        const magCls = magPillClass(level);
-        const card = document.createElement("div");
-        card.className = `event-card level-${level}`;
-
-        const main = document.createElement("div");
-        main.className = "event-main-line";
-
-        const locSpan = document.createElement("div");
-        locSpan.className = "event-location";
-        locSpan.textContent = ev.place || "Неизвестный регион";
-
-        const magSpan = document.createElement("div");
-        magSpan.className = "event-mag";
-        magSpan.textContent = `M${ev.mag != null ? ev.mag.toFixed(1) : "—"}`;
-
-        main.appendChild(locSpan);
-        main.appendChild(magSpan);
-
-        const pillsRow = document.createElement("div");
-        pillsRow.style.marginTop = "2px";
-        pillsRow.style.display = "flex";
-        pillsRow.style.flexWrap = "wrap";
-        pillsRow.style.gap = "4px";
-
-        const pillAgo = document.createElement("span");
-        pillAgo.className = "pill pill-ago";
-        pillAgo.textContent = formatAgo(ev.time);
-        pillsRow.appendChild(pillAgo);
-
-        if (ev.distanceKm != null) {
-          const pillDist = document.createElement("span");
-          pillDist.className = "pill pill-distance";
-          pillDist.textContent = `${Math.round(ev.distanceKm)} км`;
-          pillsRow.appendChild(pillDist);
-        }
-
-        if (ev.depthKm != null) {
-          const pillDepth = document.createElement("span");
-          pillDepth.className = "pill pill-depth";
-          pillDepth.textContent = `Глубина ${Math.round(ev.depthKm)} км`;
-          pillsRow.appendChild(pillDepth);
-        }
-
-        const pillMag = document.createElement("span");
-        pillMag.className = `pill ${magCls}`;
-        pillMag.textContent = `M${ev.mag != null ? ev.mag.toFixed(1) : "—"}`;
-        pillsRow.appendChild(pillMag);
-
-        const timeRow = document.createElement("div");
-        timeRow.style.fontSize = "11px";
-        timeRow.style.color = "#9ca3af";
-        timeRow.textContent = formatLocalTime(ev.time);
-
-        card.appendChild(main);
-        card.appendChild(pillsRow);
-        card.appendChild(timeRow);
-
-        container.appendChild(card);
-      }
-    }
-
-    async function fetchEarthquakes() {
-      const ts = new Date();
-      updatedLabelEl.textContent =
-        "Обновлено: " +
-        ts.toLocaleDateString() +
-        " " +
-        ts.toLocaleTimeString().slice(0, 5);
-
-      try {
-        const res = await fetch(EARTHQUAKE_FEED);
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
-        const data = await res.json();
-
-        const events = (data.features || []).map((f) => {
-          const props = f.properties || {};
-          const geom = f.geometry || {};
-          const coords = geom.coordinates || [];
-          const lon = coords[0];
-          const lat = coords[1];
-          const depthKm = coords[2];
-          const time = props.time;
-          const mag = props.mag;
-          const place = props.place;
-          let distanceKm = null;
-          if (
-            typeof lat === "number" &&
-            typeof lon === "number" &&
-            typeof userLocation.lat === "number" &&
-            typeof userLocation.lon === "number"
-          ) {
-            distanceKm = haversineDistanceKm(
-              userLocation.lat,
-              userLocation.lon,
-              lat,
-              lon
-            );
-          }
-          return {
-            id: f.id || `${time}-${lat}-${lon}`,
-            time,
-            mag,
-            depthKm,
-            place,
-            distanceKm
-          };
-        });
-
-        lastFetchRawEvents = events;
-        groupAndRenderEvents(events);
-      } catch (e) {
-        console.error("Earthquake fetch failed", e);
-        lastSignificantEl.textContent = "Ошибка загрузки данных.";
-        nearHourEl.textContent = "Ошибка загрузки данных.";
-        nearDayEl.textContent = "Ошибка загрузки данных.";
-        nearWeekEl.textContent = "Ошибка загрузки данных.";
-        worldStrongEl.textContent = "Ошибка загрузки данных.";
-        warningBannerEl.style.display = "none";
-      }
-    }
-
-    function groupAndRenderEvents(events) {
-      const now = Date.now();
-      const NEAR_RADIUS_KM = 2000;
-
-      const nearEvents = events.filter(
-        (ev) =>
-          ev.distanceKm != null && ev.distanceKm <= NEAR_RADIUS_KM && ev.time
-      );
-
-      const nearWeek = nearEvents.filter(
-        (ev) => now - ev.time <= 7 * 24 * 60 * 60 * 1000
-      );
-      const nearDay = nearEvents.filter(
-        (ev) => now - ev.time <= 24 * 60 * 60 * 1000
-      );
-      const nearHour = nearEvents.filter(
-        (ev) => now - ev.time <= 60 * 60 * 1000
-      );
-
-      nearHour.sort((a, b) => b.time - a.time);
-      nearDay.sort((a, b) => b.time - a.time);
-      nearWeek.sort((a, b) => b.time - a.time);
-
-      const byId = new Set(nearHour.map((e) => e.id));
-      const dayOnly = nearDay.filter((e) => !byId.has(e.id));
-      dayOnly.splice(5);
-      const weekOnly = nearWeek.filter(
-        (e) => !byId.has(e.id) && !dayOnly.find((d) => d.id === e.id)
-      );
-      weekOnly.splice(5);
-
-      const lastSig = [...nearWeek].sort((a, b) => b.mag - a.mag)[0];
-
-      if (lastSig) {
-        renderEvents("last-significant", [lastSig], "");
+      const severityLabel = document.createElement("div");
+      severityLabel.className = "severity-label";
+      if (severity === "high") {
+        severityLabel.textContent =
+          (currentLang === "ru") ? "ВЫСОКИЙ УРОВЕНЬ" :
+          (currentLang === "kz") ? "ЖОҒАРЫ ДЕҢГЕЙ" :
+          (currentLang === "fr") ? "NIVEAU ÉLEVÉ" :
+          "HIGH LEVEL";
+      } else if (severity === "mid") {
+        severityLabel.textContent =
+          (currentLang === "ru") ? "ЗНАЧИМОЕ СОБЫТИЕ" :
+          (currentLang === "kz") ? "АЙТУЛЫ ОҚИҒА" :
+          (currentLang === "fr") ? "ÉVÉNEMENT SIGNIFICATIF" :
+          "SIGNIFICANT EVENT";
       } else {
-        renderEvents(
-          "last-significant",
-          [],
-          "Рядом пока не было значимых событий."
-        );
+        severityLabel.textContent =
+          (currentLang === "ru") ? "НЕБОЛЬШОЕ СОБЫТИЕ" :
+          (currentLang === "kz") ? "ШАҒЫН ОҚИҒА" :
+          (currentLang === "fr") ? "ÉVÉNEMENT MINEUR" :
+          "MINOR EVENT";
       }
 
-      renderEvents(
-        "near-hour",
-        nearHour.slice(0, 5),
-        "Нет событий за последний час поблизости."
-      );
-      renderEvents(
-        "near-day",
-        dayOnly,
-        "Нет дополнительных событий за последние сутки поблизости."
-      );
-      renderEvents(
-        "near-week",
-        weekOnly,
-        "Нет дополнительных событий за последнюю неделю поблизости."
-      );
+      const rowMain = document.createElement("div");
+      rowMain.className = "event-row-main";
 
-      const worldStrong = events
-        .filter(
-          (ev) =>
-            typeof ev.mag === "number" &&
-            ev.mag >= 5.5 &&
-            now - ev.time <= 24 * 60 * 60 * 1000
-        )
-        .sort((a, b) => b.mag - a.mag)
-        .slice(0, 10);
+      const timeAgoSpan = document.createElement("div");
+      timeAgoSpan.className = "event-timeago";
+      timeAgoSpan.textContent = formatEventTimeAgo(ev.time);
 
-      renderEvents(
-        "world-strong",
-        worldStrong,
-        "За последние сутки не найдено сильных событий (M5.5+) по данным источника."
-      );
+      const magSpan = document.createElement("div");
+      magSpan.className = "event-mag";
+      magSpan.textContent = `M${ev.mag.toFixed(1)}`;
 
-      checkForDangerEvent(nearEvents);
+      rowMain.appendChild(timeAgoSpan);
+      rowMain.appendChild(magSpan);
+
+      const rowSecondary = document.createElement("div");
+      rowSecondary.className = "event-row-secondary";
+      const distStr = `${Math.round(ev.distanceKm)} км`;
+      const depthStr = `${Math.round(ev.depthKm)} км`;
+      rowSecondary.textContent =
+        (currentLang === "ru") ? `Расстояние: ${distStr}, глубина: ${depthStr}` :
+        (currentLang === "kz") ? `Қашықтық: ${distStr}, тереңдік: ${depthStr}` :
+        (currentLang === "fr") ? `Distance : ${distStr}, profondeur : ${depthStr}` :
+        `Distance: ${distStr}, depth: ${depthStr}`;
+
+      const rowPlace = document.createElement("div");
+      rowPlace.className = "event-row-place";
+      rowPlace.textContent = ev.place || "";
+
+      const srcRow = document.createElement("div");
+      srcRow.className = "event-source";
+      srcRow.textContent = "USGS";
+
+      div.appendChild(severityLabel);
+      div.appendChild(rowMain);
+      div.appendChild(rowSecondary);
+      div.appendChild(rowPlace);
+      div.appendChild(srcRow);
+
+      return div;
     }
+
+    // -------------------------
+    // ОБНОВЛЕНИЕ МЕТКИ "Обновлено"
+    // -------------------------
+
+    function updateLastUpdateLabel() {
+      const el = document.getElementById("updateText");
+      if (!el) return;
+      if (!lastUpdateTime) {
+        el.textContent = t("updated_initial");
+        return;
+      }
+      el.textContent = formatTimeAgo(lastUpdateTime);
+    }
+
+    function startLastUpdateTimer() {
+      if (updateTimerId) clearInterval(updateTimerId);
+      updateTimerId = setInterval(updateLastUpdateLabel, 1000);
+    }
+
+    // -------------------------
+    // ПРЕДУПРЕЖДАЮЩИЙ БАННЕР
+    // -------------------------
+
+    function updateWarningBanner() {
+      const banner = document.getElementById("warningBanner");
+      if (!banner) return;
+
+      if (!lastNearbyStrong) {
+        banner.classList.add("hidden");
+        return;
+      }
+
+      const { mag, distanceKm, time } = lastNearbyStrong;
+      const now = Date.now();
+      const diffMs = now - time;
+      const minAgo = diffMs / 60000;
+
+      let level = null;
+      if (mag >= 5.5 && distanceKm <= 300 && minAgo < 60) {
+        level = "danger";
+      } else if (mag >= 4.0 && distanceKm <= 500 && minAgo < 120) {
+        level = "noticeable";
+      }
+
+      if (!level) {
+        banner.classList.add("hidden");
+        return;
+      }
+
+      const titleEl = document.getElementById("warningTitle");
+      const textEl = document.getElementById("warningText");
+
+      if (level === "danger") {
+        titleEl.textContent = t("warning_title_danger");
+        textEl.textContent = t("warning_text_danger");
+      } else {
+        titleEl.textContent = t("warning_title_noticeable");
+        textEl.textContent = t("warning_text_noticeable");
+      }
+
+      banner.classList.remove("hidden");
+    }
+
+    // -------------------------
+    // ЗАГРУЗКА ДАННЫХ USGS
+    // -------------------------
+
+    async function fetchQuakes() {
+      const spinner = document.getElementById("spinner");
+      spinner.classList.add("visible");
+      try {
+        const [dayRes, weekRes] = await Promise.all([
+          fetch(USGS_DAY_URL),
+          fetch(USGS_WEEK_URL)
+        ]);
+
+        const dayJson = await dayRes.json();
+        const weekJson = await weekRes.json();
+
+        lastDataDay = (dayJson.features || []).map(f => normalizeFeature(f));
+        lastDataWeek = (weekJson.features || []).map(f => normalizeFeature(f));
+
+        lastUpdateTime = Date.now();
+        updateLastUpdateLabel();
+        startLastUpdateTimer();
+
+        processAndRender();
+      } catch (e) {
+        console.error("Error fetching quakes", e);
+      } finally {
+        spinner.classList.remove("visible");
+      }
+    }
+
+    function normalizeFeature(f) {
+      const coords = f.geometry && f.geometry.coordinates || [0,0,0];
+      const lon = coords[0];
+      const lat = coords[1];
+      const depthKm = coords[2] || 0;
+      const mag = (f.properties && typeof f.properties.mag === "number")
+        ? f.properties.mag : 0;
+      const time = (f.properties && f.properties.time) || Date.now();
+      const place = (f.properties && f.properties.place) || "";
+      const id = f.id || (f.properties && f.properties.code) || `${time}_${lat}_${lon}`;
+      return { id, lat, lon, depthKm, mag, time, place };
+    }
+
+    function processAndRender() {
+      const now = Date.now();
+      const oneHourAgo = now - 3600_000;
+      const oneDayAgo  = now - 24 * 3600_000;
+      const oneWeekAgo = now - 7  * 24 * 3600_000;
+
+      const dayWithDist = lastDataDay.map(ev => ({
+        ...ev,
+        distanceKm: haversineDistanceKm(userLocation.lat, userLocation.lon, ev.lat, ev.lon)
+      }));
+      const weekWithDist = lastDataWeek.map(ev => ({
+        ...ev,
+        distanceKm: haversineDistanceKm(userLocation.lat, userLocation.lon, ev.lat, ev.lon)
+      }));
+
+      const usedIds = new Set();
+
+      // Последнее значимое поблизости
+      const nearbySignificant = dayWithDist
+        .filter(ev => ev.distanceKm <= NEARBY_KM && ev.mag >= SIGNIFICANT_MAG)
+        .sort((a, b) => b.time - a.time);
+
+      const lastSigContainer = document.getElementById("lastSignificantContainer");
+      lastSigContainer.innerHTML = "";
+      if (nearbySignificant.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-text";
+        empty.textContent = t("no_last_significant");
+        lastSigContainer.appendChild(empty);
+        lastNearbyStrong = null;
+      } else {
+        const ev = nearbySignificant[0];
+        usedIds.add(ev.id);
+        lastNearbyStrong = ev;
+        const list = document.createElement("div");
+        list.className = "events-list";
+        list.appendChild(createEventElement(ev));
+        lastSigContainer.appendChild(list);
+      }
+
+      updateWarningBanner();
+
+      // За час поблизости
+      const nearHourContainer = document.getElementById("nearHourContainer");
+      nearHourContainer.innerHTML = "";
+      const nearHour = dayWithDist
+        .filter(ev => ev.time >= oneHourAgo && ev.distanceKm <= NEARBY_KM && !usedIds.has(ev.id))
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 5);
+      if (nearHour.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-text";
+        empty.textContent = t("no_hour_events");
+        nearHourContainer.appendChild(empty);
+      } else {
+        nearHour.forEach(ev => {
+          usedIds.add(ev.id);
+          nearHourContainer.appendChild(createEventElement(ev));
+        });
+      }
+
+      // За сутки поблизости
+      const nearDayContainer = document.getElementById("nearDayContainer");
+      nearDayContainer.innerHTML = "";
+      const nearDay = dayWithDist
+        .filter(ev => ev.time >= oneDayAgo && ev.distanceKm <= NEARBY_KM && !usedIds.has(ev.id))
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 5);
+      if (nearDay.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-text";
+        empty.textContent = t("no_day_events");
+        nearDayContainer.appendChild(empty);
+      } else {
+        nearDay.forEach(ev => {
+          usedIds.add(ev.id);
+          nearDayContainer.appendChild(createEventElement(ev));
+        });
+      }
+
+      // За неделю поблизости (кроме уже показанных)
+      const nearWeekContainer = document.getElementById("nearWeekContainer");
+      nearWeekContainer.innerHTML = "";
+      const nearWeek = weekWithDist
+        .filter(ev => ev.time >= oneWeekAgo && ev.distanceKm <= NEARBY_KM && !usedIds.has(ev.id))
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 5);
+      if (nearWeek.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-text";
+        empty.textContent = t("no_week_events");
+        nearWeekContainer.appendChild(empty);
+      } else {
+        nearWeek.forEach(ev => {
+          usedIds.add(ev.id);
+          nearWeekContainer.appendChild(createEventElement(ev));
+        });
+      }
+
+      // Сильные события в мире за 24 часа
+      const worldStrongContainer = document.getElementById("worldStrongContainer");
+      worldStrongContainer.innerHTML = "";
+      const worldStrong = dayWithDist
+        .filter(ev => ev.mag >= WORLD_STRONG_MAG)
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 5);
+      if (worldStrong.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-text";
+        empty.textContent = t("no_world_strong");
+        worldStrongContainer.appendChild(empty);
+      } else {
+        worldStrong.forEach(ev => {
+          worldStrongContainer.appendChild(createEventElement(ev));
+        });
+      }
+    }
+
+    // -------------------------
+    // ГОРОДА (cities.json)
+    // -------------------------
+
+    let citiesList = [];
+
+    async function loadCities() {
+      const errEl = document.getElementById("citiesError");
+      errEl.classList.add("hidden");
+      try {
+        const res = await fetch("cities.json");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("cities.json must be array");
+        citiesList = data;
+        populateCityDatalist();
+      } catch (e) {
+        console.warn("Failed to load cities.json", e);
+        citiesList = []; // fallback можно сделать позже
+        errEl.classList.remove("hidden");
+      }
+    }
+
+    function populateCityDatalist() {
+      const dl = document.getElementById("citiesList");
+      dl.innerHTML = "";
+      citiesList.slice(0, 5000).forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.name || "";
+        dl.appendChild(opt);
+      });
+    }
+
+    function findCityByName(name) {
+      if (!name) return null;
+      const norm = name.trim().toLowerCase();
+      if (!norm) return null;
+
+      // точное совпадение по началу
+      let best = null;
+      citiesList.forEach((c) => {
+        const n = (c.name || "").toLowerCase();
+        if (n === norm) {
+          best = c;
+          return;
+        }
+      });
+      if (best) return best;
+
+      // по вхождению
+      const candidates = citiesList
+        .filter(c => (c.name || "").toLowerCase().includes(norm))
+        .sort((a, b) => (a.name || "").length - (b.name || "").length);
+      return candidates[0] || null;
+    }
+
+    // -------------------------
+    // GEOLOCATION
+    // -------------------------
+
+    function useGeolocation() {
+      if (!navigator.geolocation) {
+        alert(currentLang === "ru"
+          ? "Геолокация не поддерживается в этом браузере."
+          : "Geolocation is not supported in this browser.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          userLocation.lat = latitude;
+          userLocation.lon = longitude;
+          userLocation.label =
+            (currentLang === "ru") ? "Моё местоположение (GPS)" :
+            (currentLang === "kz") ? "Менің орналасқан жерім (GPS)" :
+            (currentLang === "fr") ? "Ma position (GPS)" :
+            "My location (GPS)";
+          document.getElementById("currentRegion").textContent = userLocation.label;
+          document.getElementById("cityInput").value = "";
+          processAndRender();
+        },
+        (err) => {
+          console.warn("Geo error", err);
+          alert(currentLang === "ru"
+            ? "Не удалось получить геолокацию. Разрешите доступ или выберите город вручную."
+            : "Failed to get geolocation. Allow access or choose a city manually.");
+        }
+      );
+    }
+
+    // -------------------------
+    // ЯЗЫК
+    // -------------------------
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      const buttons = document.querySelectorAll(".lang-btn");
+      buttons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+      applyTranslations();
+      processAndRender(); // чтобы строки внутри карточек (timeAgo и т.д.) тоже обновились визуально
+    }
+
+    // -------------------------
+    // МОДАЛКИ
+    // -------------------------
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add("visible");
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("visible");
+    }
+
+    // -------------------------
+    // AUTO REFRESH
+    // -------------------------
 
     function startAutoRefresh() {
-      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
-      autoRefreshTimer = setInterval(fetchEarthquakes, AUTO_REFRESH_MS);
+      if (autoRefreshTimerId) clearInterval(autoRefreshTimerId);
+      autoRefreshTimerId = setInterval(() => {
+        fetchQuakes();
+      }, 10_000); // каждые 10 секунд
     }
 
-    function handleCityInputChange() {
-      const value = (cityInputEl.value || "").trim();
-      if (!value) return;
-      const valLower = value.toLowerCase();
+    // -------------------------
+    // INIT
+    // -------------------------
 
-      let best = null;
-      let bestScore = 0;
+    document.addEventListener("DOMContentLoaded", () => {
+      buildEffectiveTranslations();
+      applyTranslations();
+      loadExtraTranslations(); // подгружаем сторонние переводы (KZ/FR/overrides)
+      loadCities();
+      fetchQuakes();
+      startAutoRefresh();
 
-      for (const c of CITY_DB) {
-        const nameLower = c.name.toLowerCase();
-        if (nameLower === valLower) {
-          best = c;
-          bestScore = 1000;
-          break;
+      // Кнопка обновить
+      document.getElementById("btnRefresh").addEventListener("click", () => {
+        fetchQuakes();
+      });
+
+      // Гео
+      document.getElementById("btnGeo").addEventListener("click", () => {
+        useGeolocation();
+      });
+
+      // Изменение города
+      document.getElementById("cityInput").addEventListener("change", (e) => {
+        const value = e.target.value;
+        const city = findCityByName(value);
+        if (!city) {
+          // оставляем прошлое положение
+          return;
         }
-        if (nameLower.includes(valLower)) {
-          const score = valLower.length / nameLower.length;
-          if (score > bestScore) {
-            bestScore = score;
-            best = c;
-          }
-        }
-      }
+        userLocation.lat = city.lat;
+        userLocation.lon = city.lon;
+        userLocation.label = city.name;
+        document.getElementById("currentRegion").textContent = city.name;
+        processAndRender();
+      });
 
-      if (best) {
-        userLocation = {
-          name: best.name,
-          lat: best.lat,
-          lon: best.lon,
-          source: "manual"
-        };
-        updateRegionLabel();
-        if (lastFetchRawEvents.length) {
-          groupAndRenderEvents(lastFetchRawEvents);
-        }
-      }
-    }
-
-    function initLangSwitch() {
-      const langButtons = document.querySelectorAll(".lang-btn");
-      langButtons.forEach((btn) => {
+      // Языки
+      document.querySelectorAll(".lang-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-          langButtons.forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          // Пока тексты только на русском; переключатель оставляем на будущее
+          const lang = btn.dataset.lang;
+          setLanguage(lang);
         });
       });
-    }
 
-    function showModal(name) {
-      const id =
-        name === "donate"
-          ? "modal-donate-backdrop"
-          : name === "how"
-          ? "modal-how-backdrop"
-          : "modal-safety-backdrop";
-      const el = document.getElementById(id);
-      if (el) el.style.display = "flex";
-    }
+      // Модалки
+      document.getElementById("btnHow").addEventListener("click", () => openModal("modalHow"));
+      document.getElementById("btnSafety").addEventListener("click", () => openModal("modalSafety"));
+      document.getElementById("btnDonate").addEventListener("click", () => openModal("modalDonate"));
 
-    function hideModal(name) {
-      const id =
-        name === "donate"
-          ? "modal-donate-backdrop"
-          : name === "how"
-          ? "modal-how-backdrop"
-          : "modal-safety-backdrop";
-      const el = document.getElementById(id);
-      if (el) el.style.display = "none";
-    }
-
-    function initModals() {
-      document.getElementById("btn-donate").addEventListener("click", () =>
-        showModal("donate")
-      );
-      document.getElementById("btn-how").addEventListener("click", () =>
-        showModal("how")
-      );
-      document.getElementById("btn-safety-main").addEventListener("click", () =>
-        showModal("safety")
-      );
-      document
-        .getElementById("btn-open-safety")
-        .addEventListener("click", () => showModal("safety"));
-
-      document.querySelectorAll(".modal-close").forEach((btn) => {
-        const name = btn.getAttribute("data-close-modal");
-        btn.addEventListener("click", () => hideModal(name));
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+        backdrop.addEventListener("click", (e) => {
+          if (e.target === backdrop) {
+            backdrop.classList.remove("visible");
+          }
+        });
       });
 
-      document
-        .getElementById("modal-donate-backdrop")
-        .addEventListener("click", (e) => {
-          if (e.target.id === "modal-donate-backdrop") hideModal("donate");
-        });
-      document
-        .getElementById("modal-how-backdrop")
-        .addEventListener("click", (e) => {
-          if (e.target.id === "modal-how-backdrop") hideModal("how");
-        });
-      document
-        .getElementById("modal-safety-backdrop")
-        .addEventListener("click", (e) => {
-          if (e.target.id === "modal-safety-backdrop") hideModal("safety");
-        });
-    }
+      document.querySelectorAll(".modal-close").forEach(btn => {
+        const id = btn.dataset.closeModal;
+        btn.addEventListener("click", () => closeModal(id));
+      });
 
-    function initGeo() {
-      updateRegionLabel();
-      if (!("geolocation" in navigator)) return;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          userLocation = {
-            name: userLocation.name || "Ваше местоположение",
-            lat: latitude,
-            lon: longitude,
-            source: "gps"
-          };
-          updateRegionLabel();
-          cityInputEl.value = ""; // очищаем ручной поиск при GPS
-          if (lastFetchRawEvents.length) {
-            groupAndRenderEvents(lastFetchRawEvents);
-          }
-        },
-        (err) => {
-          console.log("Geo error:", err);
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
-
-    function requestGeoOnClick() {
-      if (!("geolocation" in navigator)) {
-        alert("Геолокация не поддерживается в этом браузере.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          userLocation = {
-            name: "Моё местоположение",
-            lat: latitude,
-            lon: longitude,
-            source: "gps"
-          };
-          updateRegionLabel();
-          cityInputEl.value = ""; // очищаем ручной город
-          if (lastFetchRawEvents.length) {
-            groupAndRenderEvents(lastFetchRawEvents);
-          } else {
-            fetchEarthquakes();
-          }
-        },
-        (err) => {
-          alert("Не удалось получить геолокацию: " + err.message);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
-
-    function initInstallButton() {
-      const btnInstall = document.getElementById("btn-install");
+      // Установка как PWA (простое событие, без сложной логики)
       let deferredPrompt = null;
-
       window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        btnInstall.disabled = false;
       });
 
+      const btnInstall = document.getElementById("btnInstall");
       btnInstall.addEventListener("click", async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
+        if (!deferredPrompt) {
+          // просто откроем онлайн-версию как подсказку
+          window.open("https://zhanat-arch.github.io/Seismo-Wake/", "_blank");
+          return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
           deferredPrompt = null;
-        } else {
-          alert(
-            "Чтобы установить Seismo-Wake, откройте меню браузера и выберите «Добавить на главный экран»."
-          );
         }
       });
-    }
-
-    function initUI() {
-      initCityDatalist();
-      initLangSwitch();
-      initModals();
-      initGeo();
-      initInstallButton();
-
-      document
-        .getElementById("btn-refresh")
-        .addEventListener("click", fetchEarthquakes);
-      document
-        .getElementById("btn-use-geo")
-        .addEventListener("click", requestGeoOnClick);
-      document
-        .getElementById("btn-open-online")
-        .addEventListener("click", () => {
-          window.open(
-            "https://zhanat-arch.github.io/Seismo-Wake/",
-            "_blank",
-            "noopener"
-          );
-        });
-
-      cityInputEl.addEventListener("change", handleCityInputChange);
-      cityInputEl.addEventListener("input", (e) => {
-        // когда выбирают из datalist, событие input тоже приходит
-        // подождём чуть-чуть и применим выбор
-        setTimeout(handleCityInputChange, 100);
-      });
-
-      fetchEarthquakes();
-      startAutoRefresh();
-    }
-
-    document.addEventListener("DOMContentLoaded", initUI);
+    });
   </script>
 </body>
 </html>
