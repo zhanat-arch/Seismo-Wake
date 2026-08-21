@@ -1,6 +1,6 @@
 // [ВЕРСИЯ PWA] Меняйте вместе с APP_VERSION в index.html. Новое имя кэша
 // заставляет браузер скачать свежие файлы и удалить кэш предыдущей версии.
-const CACHE_NAME = "seismo-wake-v1.1.1";
+const CACHE_NAME = "seismo-wake-v1.1.2";
 const OFFLINE_URLS = [
   "./",
   "./index.html",
