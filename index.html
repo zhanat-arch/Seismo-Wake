@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <meta name="description" content="Seismo-Wake — простое и понятное приложение для быстрой оценки землетрясений рядом с вами: где, как далеко и насколько сильно тряхнуло." />
+  <meta name="theme-color" content="#020617" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
 
   <style>
     :root {
@@ -229,6 +232,7 @@
 
     .region-input-row input {
       flex: 1;
+      min-width: 0;
       border-radius: 999px;
       border: 1px solid rgba(148,163,184,0.75);
       padding: 7px 11px;
@@ -617,6 +621,91 @@
     .hidden {
       display: none !important;
     }
+
+    /*
+      [НЕ МЕНЯТЬ БЕЗ ПРОВЕРКИ 320–430 PX]
+      На телефоне длинные переводы и GPS-кнопка не помещаются в одну строку.
+      Эти правила намеренно меняют компоновку, а не уменьшают шрифт: так зоны
+      нажатия остаются доступными, а RU/KK/FR не выходят за границы экрана.
+    */
+    @media (max-width: 560px) {
+      .app {
+        padding-inline: 10px;
+      }
+
+      .header-top {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .lang-switcher {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .lang-btn {
+        min-height: 36px;
+      }
+
+      .top-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .top-buttons .btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        justify-content: center;
+        text-align: center;
+        white-space: normal;
+      }
+
+      .update-row {
+        flex-wrap: wrap;
+      }
+
+      .source-label {
+        width: 100%;
+        margin-left: 24px;
+      }
+
+      .region-input-row {
+        flex-direction: column;
+      }
+
+      .region-input-row input,
+      .region-input-row .btn-geo {
+        width: 100%;
+        min-height: 42px;
+      }
+
+      .region-input-row .btn-geo {
+        justify-content: center;
+        white-space: normal;
+      }
+
+      .event-row-place,
+      .region-current,
+      .modal-title {
+        overflow-wrap: anywhere;
+      }
+
+      .modal-backdrop {
+        padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+      }
+
+      .modal {
+        max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+
+    @media (max-width: 350px) {
+      .top-buttons {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -630,7 +719,7 @@
         <div class="lang-switcher">
           <button class="lang-btn active" data-lang="ru">RU</button>
           <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="kz">KZ</button>
+          <button class="lang-btn" data-lang="kk">KK</button>
           <button class="lang-btn" data-lang="fr">FR</button>
         </div>
       </div>
@@ -647,6 +736,11 @@
         <button id="btnInstall" class="btn">
           <span class="btn-icon">⬇️</span>
           <span data-i18n="btn_install">Установить приложение</span>
+        </button>
+
+        <button id="btnAppUpdate" class="btn">
+          <span class="btn-icon">🔄</span>
+          <span data-i18n="btn_app_update">Обновить приложение</span>
         </button>
 
         <button id="btnDonate" class="btn">
@@ -792,6 +886,7 @@
         Важно: приложение работает локально в вашем браузере, но для получения актуальных данных о землетрясениях нужен интернет.
       </div>
       <div class="footer-links">
+        <span id="appVersion">v1.1.0</span>
         <a href="https://github.com/zhanat-arch/Seismo-Wake" target="_blank" rel="noopener noreferrer">
           GitHub: Seismo-Wake
         </a>
@@ -933,6 +1028,7 @@
         tagline: "Раннее понимание, где и как далеко были толчки рядом с вами.",
         btn_refresh: "Обновить данные",
         btn_install: "Установить приложение",
+        btn_app_update: "Обновить приложение",
         btn_donate: "Поддержать проект",
         btn_how: "Как это работает",
         region_label: "Ваш регион:",
@@ -941,6 +1037,16 @@
         city_hint: "Поддерживаются основные города и столицы. Если город не найден, используется последнее известное местоположение.",
         cities_error_text: "Не удалось загрузить список городов.",
         cities_error_link: "Открыть онлайн-версию",
+        city_not_found: "Город не найден. Уточните написание или используйте GPS.",
+        geo_unsupported: "Геолокация не поддерживается в этом браузере.",
+        geo_failed: "Не удалось определить местоположение. Разрешите доступ к геолокации или выберите город вручную.",
+        geo_location: "Моё местоположение (GPS)",
+        geo_near_city: "GPS · рядом с {city}",
+        app_update_checking: "Проверяем обновление приложения…",
+        app_update_ready: "Новая версия найдена. Приложение сейчас обновится.",
+        app_update_current: "У вас уже установлена последняя версия.",
+        app_update_failed: "Не удалось проверить обновление. Проверьте подключение к интернету.",
+        app_update_unavailable: "Обновление PWA доступно только в онлайн-версии или установленном приложении.",
         card_last_significant: "Последнее значимое событие поблизости",
         card_near_hour: "За последний час поблизости",
         card_near_day: "За последние сутки поблизости",
@@ -964,6 +1070,15 @@
         updated_minutes: "Обновлено: {n} мин назад",
         updated_hours: "Обновлено: {n} ч назад",
         updated_date: "Обновлено: {date}",
+        event_seconds: "{n} сек назад",
+        event_minutes: "{n} мин назад",
+        event_hours: "{n} ч назад",
+        event_day: "1 день назад",
+        event_days: "{n} дн назад",
+        severity_high: "ВЫСОКИЙ УРОВЕНЬ",
+        severity_mid: "ЗНАЧИМОЕ СОБЫТИЕ",
+        severity_low: "НЕБОЛЬШОЕ СОБЫТИЕ",
+        event_distance_depth: "{distance} км · глубина {depth} км",
 
         warning_title_danger: "Сильное землетрясение поблизости!",
         warning_text_danger: "Если вы почувствовали сильные толчки, оцените состояние здания и людей вокруг, при необходимости покиньте опасное место и следуйте официальным указаниям служб.",
@@ -1010,6 +1125,7 @@
         tagline: "Early insight into where and how far quakes happened around you.",
         btn_refresh: "Refresh data",
         btn_install: "Install app",
+        btn_app_update: "Update app",
         btn_donate: "Support the project",
         btn_how: "How it works",
         region_label: "Your region:",
@@ -1018,6 +1134,16 @@
         city_hint: "Major cities and capitals are supported. If a city is not found, the last known location is used.",
         cities_error_text: "Failed to load city list.",
         cities_error_link: "Open online version",
+        city_not_found: "City not found. Check the spelling or use GPS.",
+        geo_unsupported: "Geolocation is not supported in this browser.",
+        geo_failed: "Could not determine your location. Allow geolocation access or select a city manually.",
+        geo_location: "My location (GPS)",
+        geo_near_city: "GPS · near {city}",
+        app_update_checking: "Checking for an app update…",
+        app_update_ready: "A new version was found. The app will update now.",
+        app_update_current: "You already have the latest version.",
+        app_update_failed: "Could not check for updates. Check your internet connection.",
+        app_update_unavailable: "PWA updates are available only in the online or installed app.",
         card_last_significant: "Latest significant event nearby",
         card_near_hour: "Last hour nearby",
         card_near_day: "Last 24 hours nearby",
@@ -1041,6 +1167,15 @@
         updated_minutes: "Updated: {n} min ago",
         updated_hours: "Updated: {n} h ago",
         updated_date: "Updated: {date}",
+        event_seconds: "{n} s ago",
+        event_minutes: "{n} min ago",
+        event_hours: "{n} h ago",
+        event_day: "1 day ago",
+        event_days: "{n} days ago",
+        severity_high: "HIGH LEVEL",
+        severity_mid: "SIGNIFICANT EVENT",
+        severity_low: "MINOR EVENT",
+        event_distance_depth: "{distance} km · depth {depth} km",
 
         warning_title_danger: "Strong earthquake nearby!",
         warning_text_danger: "If you felt strong shaking, assess the building and people around you, leave dangerous areas if needed and follow official guidance from authorities.",
@@ -1087,7 +1222,15 @@
     let extraTranslations = {}; // из translations-extra.json
     let effectiveTranslations = {}; // base + extra
 
-    let currentLang = "ru";
+    const SUPPORTED_LANGS = ["ru", "en", "kk", "fr"];
+    const savedLang = localStorage.getItem("seismoWakeLanguage");
+    const browserLang = (navigator.language || "ru").slice(0, 2).toLowerCase();
+    // Старые версии использовали нестандартный код "kz". При чтении настроек
+    // преобразуем его в "kk", чтобы обновление не сбросило язык пользователя.
+    const normalizedSavedLang = savedLang === "kz" ? "kk" : savedLang;
+    let currentLang = SUPPORTED_LANGS.includes(normalizedSavedLang)
+      ? normalizedSavedLang
+      : (SUPPORTED_LANGS.includes(browserLang) ? browserLang : "ru");
 
     function buildEffectiveTranslations() {
       const result = {};
@@ -1105,7 +1248,7 @@
     }
 
     function t(key, vars = null) {
-      const dict = (effectiveTranslations[currentLang] || effectiveTranslations["en"] || {});
+      const dict = (effectiveTranslations[currentLang] || effectiveTranslations["ru"] || {});
       let str = dict[key] || baseTranslations["ru"][key] || baseTranslations["en"][key] || "";
       if (vars && typeof str === "string") {
         str = str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
@@ -1154,6 +1297,7 @@
     const NEARBY_KM = 500; // что считаем "поблизости"
     const SIGNIFICANT_MAG = 3.5; // что считаем "значимым" рядом
     const WORLD_STRONG_MAG = 5.5;
+    const APP_VERSION = "1.1.0";
 
     const USGS_DAY_URL  = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
     const USGS_WEEK_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
@@ -1172,6 +1316,69 @@
     let lastDataWeek = [];
 
     let lastNearbyStrong = null; // для баннера и последнего события
+    let serviceWorkerRegistration = null;
+    let isReloadingForUpdate = false;
+
+    /*
+      [НЕ МЕНЯТЬ БЕЗ ПРОВЕРКИ УСТАНОВЛЕННОЙ PWA]
+      Версия показывается пользователю и совпадает с версией CACHE_NAME в
+      service-worker.js. При выпуске обновления меняются обе строки. Кнопка
+      просит браузер проверить worker; обычный index.html через file:// при
+      этом продолжает работать, просто без PWA-обновления.
+    */
+    async function registerServiceWorker() {
+      document.getElementById("appVersion").textContent = `v${APP_VERSION}`;
+      if (!("serviceWorker" in navigator) || location.protocol === "file:") return null;
+      try {
+        serviceWorkerRegistration = await navigator.serviceWorker.register("./service-worker.js");
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (isReloadingForUpdate) return;
+          isReloadingForUpdate = true;
+          location.reload();
+        });
+        return serviceWorkerRegistration;
+      } catch (error) {
+        console.warn("Service worker registration failed", error);
+        return null;
+      }
+    }
+
+    async function updateInstalledApp() {
+      if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+        alert(t("app_update_unavailable"));
+        return;
+      }
+      const button = document.getElementById("btnAppUpdate");
+      button.disabled = true;
+      button.querySelector("[data-i18n]").textContent = t("app_update_checking");
+      try {
+        const registration = serviceWorkerRegistration || await registerServiceWorker();
+        if (!registration) throw new Error("Service worker is unavailable");
+        await registration.update();
+        const worker = registration.waiting || registration.installing;
+        if (!worker) {
+          alert(t("app_update_current"));
+          return;
+        }
+        if (worker.state === "installed") {
+          alert(t("app_update_ready"));
+          worker.postMessage({ type: "SKIP_WAITING" });
+          return;
+        }
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed") {
+            alert(t("app_update_ready"));
+            worker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      } catch (error) {
+        console.warn("App update check failed", error);
+        alert(t("app_update_failed"));
+      } finally {
+        button.disabled = false;
+        button.querySelector("[data-i18n]").textContent = t("btn_app_update");
+      }
+    }
 
     // -------------------------
     // UTILS
@@ -1212,34 +1419,11 @@
       const hr = Math.floor(min / 60);
       const day = Math.floor(hr / 24);
 
-      if (sec < 60) {
-        return currentLang === "ru" ? `${sec} сек назад` :
-               currentLang === "kz" ? `${sec} сек бұрын` :
-               currentLang === "fr" ? `il y a ${sec} s` :
-               `${sec} s ago`;
-      }
-      if (min < 60) {
-        return currentLang === "ru" ? `${min} мин назад` :
-               currentLang === "kz" ? `${min} мин бұрын` :
-               currentLang === "fr" ? `il y a ${min} min` :
-               `${min} min ago`;
-      }
-      if (hr < 24) {
-        return currentLang === "ru" ? `${hr} ч назад` :
-               currentLang === "kz" ? `${hr} сағат бұрын` :
-               currentLang === "fr" ? `il y a ${hr} h` :
-               `${hr} h ago`;
-      }
-      if (day === 1) {
-        return currentLang === "ru" ? `1 день назад` :
-               currentLang === "kz" ? `1 күн бұрын` :
-               currentLang === "fr" ? `il y a 1 jour` :
-               `1 day ago`;
-      }
-      return currentLang === "ru" ? `${day} дн назад` :
-             currentLang === "kz" ? `${day} күн бұрын` :
-             currentLang === "fr" ? `il y a ${day} j` :
-             `${day} days ago`;
+      if (sec < 60) return t("event_seconds", { n: sec });
+      if (min < 60) return t("event_minutes", { n: min });
+      if (hr < 24) return t("event_hours", { n: hr });
+      if (day === 1) return t("event_day");
+      return t("event_days", { n: day });
     }
 
     function classifySeverity(mag, distanceKm) {
@@ -1257,25 +1441,7 @@
 
       const severityLabel = document.createElement("div");
       severityLabel.className = "severity-label";
-      if (severity === "high") {
-        severityLabel.textContent =
-          (currentLang === "ru") ? "ВЫСОКИЙ УРОВЕНЬ" :
-          (currentLang === "kz") ? "ЖОҒАРЫ ДЕҢГЕЙ" :
-          (currentLang === "fr") ? "NIVEAU ÉLEVÉ" :
-          "HIGH LEVEL";
-      } else if (severity === "mid") {
-        severityLabel.textContent =
-          (currentLang === "ru") ? "ЗНАЧИМОЕ СОБЫТИЕ" :
-          (currentLang === "kz") ? "АЙТУЛЫ ОҚИҒА" :
-          (currentLang === "fr") ? "ÉVÉNEMENT SIGNIFICATIF" :
-          "SIGNIFICANT EVENT";
-      } else {
-        severityLabel.textContent =
-          (currentLang === "ru") ? "НЕБОЛЬШОЕ СОБЫТИЕ" :
-          (currentLang === "kz") ? "ШАҒЫН ОҚИҒА" :
-          (currentLang === "fr") ? "ÉVÉNEMENT MINEUR" :
-          "MINOR EVENT";
-      }
+      severityLabel.textContent = t(`severity_${severity}`);
 
       const rowMain = document.createElement("div");
       rowMain.className = "event-row-main";
@@ -1293,13 +1459,10 @@
 
       const rowSecondary = document.createElement("div");
       rowSecondary.className = "event-row-secondary";
-      const distStr = `${Math.round(ev.distanceKm)} км`;
-      const depthStr = `${Math.round(ev.depthKm)} км`;
-      rowSecondary.textContent =
-        (currentLang === "ru") ? `Расстояние: ${distStr}, глубина: ${depthStr}` :
-        (currentLang === "kz") ? `Қашықтық: ${distStr}, тереңдік: ${depthStr}` :
-        (currentLang === "fr") ? `Distance : ${distStr}, profondeur : ${depthStr}` :
-        `Distance: ${distStr}, depth: ${depthStr}`;
+      rowSecondary.textContent = t("event_distance_depth", {
+        distance: Math.round(ev.distanceKm),
+        depth: Math.round(ev.depthKm)
+      });
 
       const rowPlace = document.createElement("div");
       rowPlace.className = "event-row-place";
@@ -1549,6 +1712,56 @@
 
     let citiesList = [];
 
+    /*
+      [НЕ МЕНЯТЬ БЕЗ ПРОВЕРКИ РУЧНОГО ПОИСКА]
+      Названия городов приходят в разных написаниях: Almaty, Алматы, Alma-Ata.
+      Нормализация приводит строку к простому виду, а aliases содержит частые
+      исторические и локальные варианты. Координаты всегда берём из cities.json;
+      aliases помогают только найти запись и никогда не подменяют геоданные.
+    */
+    const CITY_ALIASES = {
+      "алматы": "almaty",
+      "алма ата": "almaty",
+      "астана": "astana",
+      "нур султан": "astana",
+      "шымкент": "shymkent",
+      "чимкент": "shymkent",
+      "бишкек": "bishkek",
+      "ташкент": "tashkent",
+      "москва": "moscow",
+      "санкт петербург": "saint petersburg",
+      "пекин": "beijing",
+      "урумчи": "urumqi"
+    };
+
+    function normalizeCityText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-zа-яёәіңғүұқөһ0-9]+/gi, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function levenshteinDistance(a, b) {
+      const previous = Array.from({ length: b.length + 1 }, (_, i) => i);
+      for (let i = 1; i <= a.length; i += 1) {
+        let diagonal = previous[0];
+        previous[0] = i;
+        for (let j = 1; j <= b.length; j += 1) {
+          const old = previous[j];
+          previous[j] = Math.min(
+            previous[j] + 1,
+            previous[j - 1] + 1,
+            diagonal + (a[i - 1] === b[j - 1] ? 0 : 1)
+          );
+          diagonal = old;
+        }
+      }
+      return previous[b.length];
+    }
+
     async function loadCities() {
       const errEl = document.getElementById("citiesError");
       errEl.classList.add("hidden");
@@ -1578,25 +1791,39 @@
 
     function findCityByName(name) {
       if (!name) return null;
-      const norm = name.trim().toLowerCase();
+      let norm = normalizeCityText(name);
       if (!norm) return null;
+      norm = CITY_ALIASES[norm] || norm;
 
-      // точное совпадение по началу
-      let best = null;
-      citiesList.forEach((c) => {
-        const n = (c.name || "").toLowerCase();
-        if (n === norm) {
-          best = c;
-          return;
-        }
-      });
-      if (best) return best;
+      const indexed = citiesList.map(city => ({
+        city,
+        normalizedName: normalizeCityText(city.name)
+      }));
+      const exact = indexed.find(item => item.normalizedName === norm);
+      if (exact) return exact.city;
 
-      // по вхождению
-      const candidates = citiesList
-        .filter(c => (c.name || "").toLowerCase().includes(norm))
-        .sort((a, b) => (a.name || "").length - (b.name || "").length);
-      return candidates[0] || null;
+      const partial = indexed
+        .filter(item => item.normalizedName.startsWith(norm) || item.normalizedName.includes(norm))
+        .sort((a, b) => a.normalizedName.length - b.normalizedName.length)[0];
+      if (partial) return partial.city;
+
+      // Опечатки исправляем только для достаточно длинного запроса. Для "ош"
+      // или "оши" нечёткий поиск может выбрать совсем другой город.
+      if (norm.length < 5) return null;
+      const fuzzy = indexed
+        .map(item => ({ ...item, distance: levenshteinDistance(norm, item.normalizedName) }))
+        .sort((a, b) => a.distance - b.distance)[0];
+      const allowedErrors = norm.length >= 9 ? 3 : 2;
+      return fuzzy && fuzzy.distance <= allowedErrors ? fuzzy.city : null;
+    }
+
+    function findNearestCity(lat, lon, maxDistanceKm = 80) {
+      let nearest = null;
+      for (const city of citiesList) {
+        const distanceKm = haversineDistanceKm(lat, lon, city.lat, city.lon);
+        if (!nearest || distanceKm < nearest.distanceKm) nearest = { city, distanceKm };
+      }
+      return nearest && nearest.distanceKm <= maxDistanceKm ? nearest.city : null;
     }
 
     // -------------------------
@@ -1605,32 +1832,34 @@
 
     function useGeolocation() {
       if (!navigator.geolocation) {
-        alert(currentLang === "ru"
-          ? "Геолокация не поддерживается в этом браузере."
-          : "Geolocation is not supported in this browser.");
+        alert(t("geo_unsupported"));
         return;
       }
 
+      /*
+        [НЕ МЕНЯТЬ БЕЗ ПРОВЕРКИ GPS И РУЧНОГО ГОРОДА]
+        GPS возвращает координаты и не зависит от cities.json. Таблица нужна
+        только для понятной подписи ближайшего города. Даже если таблица не
+        загрузилась, расстояния до землетрясений продолжают считаться по GPS.
+      */
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
           userLocation.lat = latitude;
           userLocation.lon = longitude;
-          userLocation.label =
-            (currentLang === "ru") ? "Моё местоположение (GPS)" :
-            (currentLang === "kz") ? "Менің орналасқан жерім (GPS)" :
-            (currentLang === "fr") ? "Ma position (GPS)" :
-            "My location (GPS)";
+          const nearestCity = findNearestCity(latitude, longitude);
+          userLocation.label = nearestCity
+            ? t("geo_near_city", { city: nearestCity.name })
+            : t("geo_location");
           document.getElementById("currentRegion").textContent = userLocation.label;
           document.getElementById("cityInput").value = "";
           processAndRender();
         },
         (err) => {
           console.warn("Geo error", err);
-          alert(currentLang === "ru"
-            ? "Не удалось получить геолокацию. Разрешите доступ или выберите город вручную."
-            : "Failed to get geolocation. Allow access or choose a city manually.");
-        }
+          alert(t("geo_failed"));
+        },
+        { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }
       );
     }
 
@@ -1639,7 +1868,9 @@
     // -------------------------
 
     function setLanguage(lang) {
+      if (!SUPPORTED_LANGS.includes(lang)) return;
       currentLang = lang;
+      localStorage.setItem("seismoWakeLanguage", lang);
       const buttons = document.querySelectorAll(".lang-btn");
       buttons.forEach(btn => {
         btn.classList.toggle("active", btn.dataset.lang === lang);
@@ -1686,11 +1917,14 @@
       loadCities();
       fetchQuakes();
       startAutoRefresh();
+      registerServiceWorker();
 
       // Кнопка обновить
       document.getElementById("btnRefresh").addEventListener("click", () => {
         fetchQuakes();
       });
+
+      document.getElementById("btnAppUpdate").addEventListener("click", updateInstalledApp);
 
       // Гео
       document.getElementById("btnGeo").addEventListener("click", () => {
@@ -1702,7 +1936,7 @@
         const value = e.target.value;
         const city = findCityByName(value);
         if (!city) {
-          // оставляем прошлое положение
+          alert(t("city_not_found"));
           return;
         }
         userLocation.lat = city.lat;
